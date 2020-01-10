@@ -1,5 +1,6 @@
 package ru.skillbox.blog.service;
 
+import java.util.List;
 import ru.skillbox.blog.model.GlobalSettings;
 
 /**
@@ -8,4 +9,5 @@ import ru.skillbox.blog.model.GlobalSettings;
  */
 public interface GlobalSettingsService {
     void createSetting(final GlobalSettings globalSettings);
+    List<GlobalSettings> findAll();
 }

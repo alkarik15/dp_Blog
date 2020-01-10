@@ -1,5 +1,6 @@
 package ru.skillbox.blog.service.impl;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.skillbox.blog.model.GlobalSettings;
@@ -20,7 +21,14 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         final GlobalSettings byCode = globalSettingsRepository.findByCode(globalSettings.getCode());
         if (byCode != null) {
             globalSettings.setId(byCode.getId());
+            globalSettings.setName(byCode.getName());
         }
         globalSettingsRepository.save(globalSettings);
     }
+
+    @Override
+    public List<GlobalSettings> findAll() {
+        return (List<GlobalSettings>) globalSettingsRepository.findAll();
+    }
+
 }

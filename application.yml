@@ -15,3 +15,12 @@ global:
     - code: STATISTICS_IS_PUBLIC
       name: Показывать всем статистику блога
       value: 'YES'
+
+blog:
+  header:
+    title: DevPub
+    subtitle: Рассказы разработчиков
+    phone: +7 9145467551
+    email: alkarik@ya.ru
+    copyright: Александр Карпович
+    copyrightFrom: 2020

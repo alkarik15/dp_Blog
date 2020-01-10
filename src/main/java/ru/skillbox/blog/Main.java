@@ -16,6 +16,7 @@ public class Main implements CommandLineRunner {
     @Autowired
     private InitProperties app;
 
+
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
     }
