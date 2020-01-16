@@ -5,6 +5,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -12,8 +13,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author alkarik
@@ -41,7 +43,7 @@ public class Posts {
     private Users userId;
 
     @Column(nullable = false, columnDefinition = "DATETIME")
-    private LocalDate time;
+    private LocalDateTime time;
 
     @Column(nullable = false)
     private String title;
@@ -52,22 +54,21 @@ public class Posts {
     @Column(nullable = false)
     private int viewCount;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.PERSIST,fetch = FetchType.EAGER)
     @JoinTable(
         name = "tag2post",
         joinColumns = {@JoinColumn(name = "post_id")},
         inverseJoinColumns = {@JoinColumn(name = "tag_id")}
     )
-    private List<Tags> tags;
+    private Set<Tags> tags=new HashSet<>();
 
-    public List<Tags> getTags() {
-        return tags;
+    public void addTag(Tags tag) {
+        tags.add(tag);
     }
 
-    public void setTags(final List<Tags> tags) {
-        this.tags = tags;
+    public void removeTag(Tags tag) {
+        tags.remove(tag);
     }
-
     public Posts() {
     }
 
@@ -111,11 +112,11 @@ public class Posts {
         this.userId = userId;
     }
 
-    public LocalDate getTime() {
+    public LocalDateTime getTime() {
         return time;
     }
 
-    public void setTime(final LocalDate time) {
+    public void setTime(final LocalDateTime time) {
         this.time = time;
     }
 
