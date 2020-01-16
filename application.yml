@@ -26,3 +26,4 @@ blog:
     email: alkarik@ya.ru
     copyright: Александр Карпович
     copyrightFrom: 2020
+captcha.deleteAfterMin: 60
