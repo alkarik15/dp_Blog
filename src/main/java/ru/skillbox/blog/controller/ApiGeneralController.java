@@ -31,7 +31,7 @@ public class ApiGeneralController {
     @GetMapping("/init/")
     public ResponseEntity initHeader() {
         StringBuilder sb = new StringBuilder("{");
-        headerProperties.getHeader().forEach((s, s2) -> sb.append("'" + s + "': '" + s2 + "',"));
+        headerProperties.getHeader().forEach((s, s2) -> sb.append("'").append(s).append("': '").append(s2).append("',"));
         sb.append("}");
         return new ResponseEntity(sb, HttpStatus.OK);
     }
@@ -42,7 +42,7 @@ public class ApiGeneralController {
         return new ResponseEntity(getSettings().toString(), HttpStatus.OK);
     }
 
-    @PutMapping("/settings/")
+    @PutMapping(value = "/settings/")
     public ResponseEntity apiPutSettings(@RequestBody Map<String, Boolean> globalSettings) throws HttpMessageNotReadableException {
         //TODO наличие Авторизация и модератор
         //TODO Валидация входных данных ?
