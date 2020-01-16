@@ -5,7 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * @author alkarik
@@ -18,7 +18,7 @@ public class CaptchaCodes {
     private int id;
 
     @Column(nullable = false,columnDefinition="DATETIME")
-    private LocalDate time;
+    private LocalDateTime time;
 
     @Column(nullable = false)
     private String code;
@@ -29,6 +29,12 @@ public class CaptchaCodes {
     public CaptchaCodes() {
     }
 
+    public CaptchaCodes(final LocalDateTime time, final String code, final String secretCode) {
+        this.time = time;
+        this.code = code;
+        this.secretCode = secretCode;
+    }
+
     public int getId() {
         return id;
     }
@@ -37,11 +43,11 @@ public class CaptchaCodes {
         this.id = id;
     }
 
-    public LocalDate getTime() {
+    public LocalDateTime getTime() {
         return time;
     }
 
-    public void setTime(final LocalDate time) {
+    public void setTime(final LocalDateTime time) {
         this.time = time;
     }
 
