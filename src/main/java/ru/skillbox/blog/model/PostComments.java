@@ -7,7 +7,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * @author alkarik
@@ -32,7 +32,10 @@ public class PostComments {
     private Posts postId;
 
     @Column(nullable = false, columnDefinition = "DATETIME")
-    private LocalDate time;
+    private LocalDateTime time;
+
+    @Column(length = 4096)
+    private String text;
 
     public PostComments() {
     }
@@ -69,12 +72,20 @@ public class PostComments {
         this.postId = postId;
     }
 
-    public LocalDate getTime() {
+    public LocalDateTime getTime() {
         return time;
     }
 
-    public void setTime(final LocalDate time) {
+    public void setTime(final LocalDateTime time) {
         this.time = time;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(final String text) {
+        this.text = text;
     }
 }
 

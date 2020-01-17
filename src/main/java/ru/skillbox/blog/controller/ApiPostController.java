@@ -18,13 +18,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.skillbox.blog.dto.AddPostDto;
+import ru.skillbox.blog.dto.CommentsDto;
 import ru.skillbox.blog.dto.Param;
+import ru.skillbox.blog.dto.PostByIdDto;
 import ru.skillbox.blog.dto.PostDto;
 import ru.skillbox.blog.dto.PostsDto;
 import ru.skillbox.blog.dto.ResultsDto;
 import ru.skillbox.blog.model.ModerationStatus;
+import ru.skillbox.blog.model.PostComments;
 import ru.skillbox.blog.model.Posts;
 import ru.skillbox.blog.model.Tags;
+import ru.skillbox.blog.service.PostCommentsService;
 import ru.skillbox.blog.service.PostVotesService;
 import ru.skillbox.blog.service.PostsService;
 import ru.skillbox.blog.service.TagsService;
@@ -42,6 +46,9 @@ public class ApiPostController {
 
     @Autowired
     private PostVotesService postVotesService;
+
+    @Autowired
+    private PostCommentsService postCommentsService;
 
     @Autowired
     private TagsService tagsService;
@@ -81,7 +88,30 @@ public class ApiPostController {
 
     @GetMapping("/{id}")
     public String apiPostById(@PathVariable("id") Integer id) {
-        return null;
+        final Posts postById = postsService.getPostByIdModerationStatusActiveTime(id, (byte) 1, ModerationStatus.ACCEPT, LocalDateTime.now());
+        if (postById == null) {
+            return null;
+        }
+        ModelMapper modelMapper = new ModelMapper();
+
+        PostByIdDto postByDto = modelMapper.map(postById, PostByIdDto.class);
+
+        String[] stats = postVotesService.findStatPost(id).split(":");
+        postByDto.setLikes(Integer.parseInt(stats[1]));
+        postByDto.setDislikes(Integer.parseInt(stats[2]));
+
+        List<PostComments> commentsByPostId = postCommentsService.findByPostId(postById);
+        List<CommentsDto> listCommentsDto = new ArrayList<>();
+        for (PostComments postComment : commentsByPostId) {
+            CommentsDto commentDto = modelMapper.map(postComment, CommentsDto.class);
+            listCommentsDto.add(commentDto);
+        }
+
+        postByDto.setComments(listCommentsDto);
+
+        //        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        return gson.toJson(postByDto);
     }
 
     @GetMapping("/byDate")
