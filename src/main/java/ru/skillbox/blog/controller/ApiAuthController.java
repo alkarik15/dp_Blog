@@ -2,9 +2,9 @@ package ru.skillbox.blog.controller;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,19 +39,19 @@ public class ApiAuthController {
 
     @PostMapping(value = "/register")
     public ResponseEntity apiAuthRegister(@RequestBody UserRegisterDto userRegister) {
-        List<String> errors = new ArrayList<>();
+        Map<String, String> errors = new HashMap<>();
         if (userRegister.getName() == null || userRegister.getName().length() == 0) {
-            errors.add("Имя указано не верно");
+            errors.put("name", "Имя указано не верно");
         }
         if (userRegister.getPassword().length() < 6) {
-            errors.add("Пароль короче 6-ти символов");
+            errors.put("password", "Пароль короче 6-ти символов");
         }
         final CaptchaCodes captcha = captchaService.findCaptcha(userRegister.getCaptcha(), userRegister.getCaptcha_secret());
         if (captcha == null) {
-            errors.add("Код с картинки введен не верно");
+            errors.put("captcha", "Код с картинки введен не верно");
         }
         if (usersService.existEmail(userRegister.getEmail())) {
-            errors.add("Этот e-mail уже зарегистрирован");
+            errors.put("email", "Этот e-mail уже зарегистрирован");
         }
         ResultsDto result = new ResultsDto();
         if (errors.size() == 0) {
@@ -68,7 +68,7 @@ public class ApiAuthController {
 
     @GetMapping(value = "/captcha")
     @Transactional
-    public String apiAuthCaptcha() {
+    public ResponseEntity apiAuthCaptcha() {
 
         captchaService.deleteOldCaptсhas();
 
@@ -96,6 +96,6 @@ public class ApiAuthController {
         }
         CaptchaDto captchaDto = new CaptchaDto(strSecret, encoded);
         Gson gson = new Gson();
-        return gson.toJson(captchaDto);
+        return new ResponseEntity(gson.toJson(captchaDto), HttpStatus.OK);
     }
 }

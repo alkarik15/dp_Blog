@@ -2,6 +2,7 @@ package ru.skillbox.blog.controller;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.google.gson.Gson;
@@ -105,16 +106,16 @@ public class ApiPostController {
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public String apiPostPost(@RequestBody AddPostDto addPost) {
-        List<String> errors = new ArrayList<>();
+        Map<String, String> errors = new HashMap<>();
         if (addPost.getTitle() == null || addPost.getTitle().length() == 0) {
-            errors.add("Заголовок не установлен");
+            errors.put("title", "Заголовок не установлен");
         } else if (addPost.getTitle().length() <= 10) {
-            errors.add("Заголовок слишком короткий");
+            errors.put("title", "Заголовок слишком короткий");
         }
         if (addPost.getText() == null || addPost.getText().length() == 0) {
-            errors.add("Текст публикации не установлен");
+            errors.put("text", "Текст публикации не установлен");
         } else if (addPost.getText().length() <= 500) {
-            errors.add("Текст публикации слишком короткий");
+            errors.put("text", "Текст публикации слишком короткий");
         }
 
         ResultsDto result = new ResultsDto();
@@ -132,7 +133,7 @@ public class ApiPostController {
 
             final String[] splitTags = addPost.getTags().split(",");
             for (String splitTag : splitTags) {
-                Tags ta=tagsService.addTags(splitTag);
+                Tags ta = tagsService.addTags(splitTag);
                 post.addTag(ta);
             }
             postsService.save(post);

@@ -1,6 +1,6 @@
 package ru.skillbox.blog.dto;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author alkarik
@@ -8,7 +8,8 @@ import java.util.List;
  */
 public class ResultsDto {
     private Boolean result;
-    private List<String> errors;
+
+    private Map<String, String> errors;
 
     public Boolean getResult() {
         return result;
@@ -18,11 +19,11 @@ public class ResultsDto {
         this.result = result;
     }
 
-    public List<String> getErrors() {
+    public Map<String, String> getErrors() {
         return errors;
     }
 
-    public void setErrors(final List<String> errors) {
+    public void setErrors(final Map<String, String> errors) {
         this.errors = errors;
     }
 }
