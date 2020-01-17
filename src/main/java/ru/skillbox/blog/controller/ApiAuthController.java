@@ -1,14 +1,18 @@
 package ru.skillbox.blog.controller;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.skillbox.blog.dto.CaptchaDto;
+import ru.skillbox.blog.dto.EmailDto;
 import ru.skillbox.blog.dto.ResultsDto;
 import ru.skillbox.blog.dto.UserRegisterDto;
 import ru.skillbox.blog.model.CaptchaCodes;
@@ -23,6 +28,7 @@ import ru.skillbox.blog.model.Users;
 import ru.skillbox.blog.service.CaptchaService;
 import ru.skillbox.blog.service.UsersService;
 import ru.skillbox.blog.utils.Captcha;
+import ru.skillbox.blog.utils.MailConstructor;
 
 /**
  * @author alkarik
@@ -32,10 +38,17 @@ import ru.skillbox.blog.utils.Captcha;
 @RequestMapping("/api/auth")
 public class ApiAuthController {
     @Autowired
+    private JavaMailSender mailSender;
+
+    @Autowired
     private CaptchaService captchaService;
 
     @Autowired
     private UsersService usersService;
+
+
+    @Autowired
+    private MailConstructor mailConstructor;
 
     @PostMapping(value = "/register")
     public ResponseEntity apiAuthRegister(@RequestBody UserRegisterDto userRegister) {
@@ -97,5 +110,24 @@ public class ApiAuthController {
         CaptchaDto captchaDto = new CaptchaDto(strSecret, encoded);
         Gson gson = new Gson();
         return new ResponseEntity(gson.toJson(captchaDto), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/restore")
+    public ResponseEntity apiPostRestore(HttpServletRequest request, @RequestBody EmailDto email) {
+        final Users user = usersService.findEmail(email.getEmail());
+        ResultsDto result = new ResultsDto();
+        if (user != null) {
+            String token = UUID.randomUUID().toString();
+            String appUrl = "http://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
+            SimpleMailMessage newEmail = mailConstructor.constructResetPassword(appUrl, user.getEmail(), token);
+            mailSender.send(newEmail);
+
+            result.setResult(true);
+        } else {
+            result.setResult(false);
+
+        }
+        Gson gson = new Gson();
+        return new ResponseEntity(gson.toJson(result), HttpStatus.OK);
     }
 }

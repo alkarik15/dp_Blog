@@ -9,6 +9,8 @@ import ru.skillbox.blog.model.Users;
  * @link http://alkarik
  */
 @Repository
-public interface UsersRepository extends CrudRepository<Users,Integer> {
+public interface UsersRepository extends CrudRepository<Users, Integer> {
     boolean existsByEmail(String email);
+
+    Users findByEmail(String email);
 }

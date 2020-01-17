@@ -10,5 +10,7 @@ public interface UsersService {
 
     boolean existEmail(String email);
 
+    Users findEmail(String email);
+
     void addUser(Users user);
 }

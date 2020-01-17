@@ -24,4 +24,9 @@ public class UsersServiceImpl implements UsersService {
     public void addUser(final Users user) {
         usersRepository.save(user);
     }
+
+    @Override
+    public Users findEmail(final String email) {
+        return usersRepository.findByEmail(email);
+    }
 }

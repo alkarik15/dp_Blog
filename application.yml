@@ -6,6 +6,11 @@ spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
 spring.jpa.properties.hibernate.show_sql: true
 spring.jpa.properties.hibernate.use_sql_comments: true
 spring.jpa.properties.hibernate.format_sql: true
+spring:
+  jpa:
+    properties:
+      hibernate:
+        type: TRACE
 global:
   settings:
     - code: MULTIUSER_MODE
@@ -26,4 +31,12 @@ blog:
     email: alkarik@ya.ru
     copyright: Александр Карпович
     copyrightFrom: 2020
+
 captcha.deleteAfterMin: 60
+
+support.email: admin@hiik.ru
+spring.mail.host: mail.hiik.ru
+spring.mail.username: alkarik
+spring.mail.password:
+spring.mail.port: 25
+spring.mail.protocol: smtp
