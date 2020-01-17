@@ -9,5 +9,9 @@ import ru.skillbox.blog.model.CaptchaCodes;
 public interface CaptchaService {
     void saveCaptcha(CaptchaCodes captcha);
 
-    void deleteOldCapthas();
+    void deleteOldCaptсhas();
+
+    CaptchaCodes findCaptcha(String code, String secretCode);
+
+    void deleteCaptcha(CaptchaCodes captcha);
 }

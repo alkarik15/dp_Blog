@@ -5,7 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * @author alkarik
@@ -21,7 +21,7 @@ public class Users {
     private byte isModerator;
 
     @Column(nullable = false, columnDefinition = "DATETIME")
-    private LocalDate regTime;
+    private LocalDateTime regTime;
 
     @Column(nullable = false)
     private String name;
@@ -40,6 +40,13 @@ public class Users {
     public Users() {
     }
 
+    public Users(final LocalDateTime regTime, final String name, final String email, final String password) {
+        this.regTime = regTime;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+    }
+
     public int getId() {
         return id;
     }
@@ -56,11 +63,11 @@ public class Users {
         this.isModerator = isModerator;
     }
 
-    public LocalDate getRegTime() {
+    public LocalDateTime getRegTime() {
         return regTime;
     }
 
-    public void setRegTime(final LocalDate regTime) {
+    public void setRegTime(final LocalDateTime regTime) {
         this.regTime = regTime;
     }
 
