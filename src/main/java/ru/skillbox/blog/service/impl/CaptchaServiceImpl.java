@@ -26,8 +26,18 @@ public class CaptchaServiceImpl implements CaptchaService {
     }
 
     @Override
-    public void deleteOldCapthas() {
+    public void deleteOldCaptсhas() {
         LocalDateTime ldt = LocalDateTime.now().minusMinutes(deleteAfterMin);
         captchaRepository.deleteAllByTimeBefore(ldt);
+    }
+
+    @Override
+    public CaptchaCodes findCaptcha(final String code, final String secretCode) {
+        return captchaRepository.findByCodeAndSecretCode(code, secretCode);
+    }
+
+    @Override
+    public void deleteCaptcha(final CaptchaCodes captcha) {
+        captchaRepository.delete(captcha);
     }
 }

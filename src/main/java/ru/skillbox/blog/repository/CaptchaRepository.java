@@ -12,4 +12,6 @@ import ru.skillbox.blog.model.CaptchaCodes;
 @Repository
 public interface CaptchaRepository extends CrudRepository<CaptchaCodes, Integer> {
     void deleteAllByTimeBefore(LocalDateTime ldt);
+    CaptchaCodes findByCodeAndSecretCode(String code, String secretCode);
+
 }
