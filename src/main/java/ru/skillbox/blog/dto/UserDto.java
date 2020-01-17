@@ -6,7 +6,10 @@ package ru.skillbox.blog.dto;
  */
 public class UserDto {
     private int id;
+
     private String name;
+
+    private String photo;
 
     public int getId() {
         return id;
@@ -22,5 +25,13 @@ public class UserDto {
 
     public void setName(final String name) {
         this.name = name;
+    }
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(final String photo) {
+        this.photo = photo;
     }
 }

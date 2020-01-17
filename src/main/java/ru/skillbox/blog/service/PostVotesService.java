@@ -7,5 +7,7 @@ import java.util.Map;
  * @link http://alkarik
  */
 public interface PostVotesService {
-    Map<Integer,String> findStatistics();
+    Map<Integer, String> findStatistics();
+
+    String findStatPost(Integer id);
 }
