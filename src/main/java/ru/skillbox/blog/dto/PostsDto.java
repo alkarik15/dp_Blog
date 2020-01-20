@@ -7,15 +7,15 @@ import java.util.List;
  * @link http://alkarik
  */
 public class PostsDto {
-    private int cout;
+    private Integer count;
     private List<PostDto> posts;
 
-    public int getCout() {
-        return cout;
+    public Integer getCout() {
+        return count;
     }
 
-    public void setCout(final int cout) {
-        this.cout = cout;
+    public void setCout(final Integer cout) {
+        this.count = cout;
     }
 
     public List<PostDto> getPosts() {
@@ -27,14 +27,14 @@ public class PostsDto {
     }
 
     public PostsDto(final int cout, final List<PostDto> posts) {
-        this.cout = cout;
+        this.count = cout;
         this.posts = posts;
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("PostsDto{");
-        sb.append("cout=").append(cout);
+        sb.append("cout=").append(count);
         sb.append(", posts=").append(posts);
         sb.append('}');
         return sb.toString();

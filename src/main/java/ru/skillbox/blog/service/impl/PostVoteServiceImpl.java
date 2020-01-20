@@ -6,15 +6,17 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.skillbox.blog.repository.PostVotesRepository;
-import ru.skillbox.blog.service.PostVotesService;
+import ru.skillbox.blog.service.PostVoteService;
 
 /**
  * @author alkarik
  * @link http://alkarik
  */
 @Service
-public class PostVotesServiceImpl implements PostVotesService {
+@Transactional(readOnly=true)
+public class PostVoteServiceImpl implements PostVoteService {
 
     @Autowired
     private PostVotesRepository postVotesRepository;

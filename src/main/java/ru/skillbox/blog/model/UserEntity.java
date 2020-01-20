@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
@@ -12,7 +13,8 @@ import java.time.LocalDateTime;
  * @link http://alkarik
  */
 @Entity
-public class Users {
+@Table(name = "users")
+public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
@@ -37,10 +39,10 @@ public class Users {
     @Column(length = 65535, columnDefinition = "Text")
     private String photo;
 
-    public Users() {
+    public UserEntity() {
     }
 
-    public Users(final LocalDateTime regTime, final String name, final String email, final String password) {
+    public UserEntity(final LocalDateTime regTime, final String name, final String email, final String password) {
         this.regTime = regTime;
         this.name = name;
         this.email = email;

@@ -7,6 +7,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
@@ -14,22 +15,23 @@ import java.time.LocalDateTime;
  * @link http://alkarik
  */
 @Entity
-public class PostComments {
+@Table(name = "post_comments")
+public class PostCommentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
-    private PostComments parentId;
+    private PostCommentEntity parentId;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private Users userId;
+    private UserEntity userId;
 
     @ManyToOne
     @JoinColumn(name = "post_id")
-    private Posts postId;
+    private PostEntity postId;
 
     @Column(nullable = false, columnDefinition = "DATETIME")
     private LocalDateTime time;
@@ -37,7 +39,7 @@ public class PostComments {
     @Column(length = 4096)
     private String text;
 
-    public PostComments() {
+    public PostCommentEntity() {
     }
 
     public int getId() {
@@ -48,27 +50,27 @@ public class PostComments {
         this.id = id;
     }
 
-    public PostComments getParentId() {
+    public PostCommentEntity getParentId() {
         return parentId;
     }
 
-    public void setParentId(final PostComments parentId) {
+    public void setParentId(final PostCommentEntity parentId) {
         this.parentId = parentId;
     }
 
-    public Users getUserId() {
+    public UserEntity getUserId() {
         return userId;
     }
 
-    public void setUserId(final Users userId) {
+    public void setUserId(final UserEntity userId) {
         this.userId = userId;
     }
 
-    public Posts getPostId() {
+    public PostEntity getPostId() {
         return postId;
     }
 
-    public void setPostId(final Posts postId) {
+    public void setPostId(final PostEntity postId) {
         this.postId = postId;
     }
 

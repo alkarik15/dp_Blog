@@ -4,14 +4,14 @@ import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import ru.skillbox.blog.model.PostVotes;
+import ru.skillbox.blog.model.PostVoteEntity;
 
 /**
  * @author alkarik
  * @link http://alkarik
  */
 @Repository
-public interface PostVotesRepository extends CrudRepository<PostVotes, Integer> {
+public interface PostVotesRepository extends CrudRepository<PostVoteEntity, Integer> {
     //
     @Query(nativeQuery = true, value = "SELECT " +
         "p.post_id AS pid, SUM(IF(p.value=1,1,0)) AS likes, SUM(IF(p.value=-1,1,0)) AS dislikes, " +
