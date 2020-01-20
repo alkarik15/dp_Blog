@@ -2,16 +2,18 @@ package ru.skillbox.blog.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.skillbox.blog.model.Users;
+import org.springframework.transaction.annotation.Transactional;
+import ru.skillbox.blog.model.UserEntity;
 import ru.skillbox.blog.repository.UsersRepository;
-import ru.skillbox.blog.service.UsersService;
+import ru.skillbox.blog.service.UserService;
 
 /**
  * @author alkarik
  * @link http://alkarik
  */
 @Service
-public class UsersServiceImpl implements UsersService {
+@Transactional(readOnly = true)
+public class UserServiceImpl implements UserService {
     @Autowired
     private UsersRepository usersRepository;
 
@@ -21,12 +23,13 @@ public class UsersServiceImpl implements UsersService {
     }
 
     @Override
-    public void addUser(final Users user) {
+    @Transactional(readOnly = false)
+    public void addUser(final UserEntity user) {
         usersRepository.save(user);
     }
 
     @Override
-    public Users findEmail(final String email) {
+    public UserEntity findEmail(final String email) {
         return usersRepository.findByEmail(email);
     }
 }

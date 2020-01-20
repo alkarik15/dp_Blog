@@ -16,7 +16,7 @@ import java.io.ByteArrayOutputStream;
  */
 public class Captcha {
 
-    public static byte[] getCaptcha(String random_text, String image_extension) throws java.io.IOException {
+    public static byte[] getCaptcha(String randomText, String image_extension) throws java.io.IOException {
         BufferedImage bufferedImage;
         int width = 150;
         int height = 50;
@@ -33,7 +33,7 @@ public class Captcha {
         g2d.fillRect(0, 0, width, height);
         g2d.setColor(new Color(151, 100, 60));
         // -------------------------
-        g2d.drawString(random_text, 60, 30);
+        g2d.drawString(randomText, 60, 30);
         for (int i = 0; i < 100; i += 15) {
             g2d.drawLine((int) Math.round(Math.random() * width), (int) Math.round(Math.random() * height), (int) Math.round(Math.random() * width), (int) Math.round(Math.random() * height));
         }

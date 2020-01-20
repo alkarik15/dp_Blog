@@ -9,7 +9,7 @@ public class UserRegisterDto {
     private String name;
     private String password;
     private String captcha;
-    private String captcha_secret;
+    private String captchaSecret;
 
     public String getEmail() {
         return email;
@@ -43,11 +43,11 @@ public class UserRegisterDto {
         this.captcha = captcha;
     }
 
-    public String getCaptcha_secret() {
-        return captcha_secret;
+    public String getCaptchaSecret() {
+        return captchaSecret;
     }
 
-    public void setCaptcha_secret(final String captcha_secret) {
-        this.captcha_secret = captcha_secret;
+    public void setCaptchaSecret(final String captchaSecret) {
+        this.captchaSecret = captchaSecret;
     }
 }

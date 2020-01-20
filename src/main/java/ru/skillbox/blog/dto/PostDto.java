@@ -1,6 +1,6 @@
 package ru.skillbox.blog.dto;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * @author alkarik
@@ -12,7 +12,7 @@ public class PostDto {
 
     private UserDto user;
 
-    private LocalDate time;
+    private LocalDateTime time;
 
     private String title;
 
@@ -73,11 +73,11 @@ public class PostDto {
         this.user = user;
     }
 
-    public LocalDate getTime() {
+    public LocalDateTime getTime() {
         return time;
     }
 
-    public void setTime(final LocalDate time) {
+    public void setTime(final LocalDateTime time) {
         this.time = time;
     }
 

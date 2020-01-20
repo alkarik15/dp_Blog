@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
@@ -12,7 +13,8 @@ import java.time.LocalDateTime;
  * @link http://alkarik
  */
 @Entity
-public class CaptchaCodes {
+@Table(name = "Captcha_codes")
+public class CaptchaCodeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
@@ -26,10 +28,10 @@ public class CaptchaCodes {
     @Column(nullable = false)
     private String secretCode;
 
-    public CaptchaCodes() {
+    public CaptchaCodeEntity() {
     }
 
-    public CaptchaCodes(final LocalDateTime time, final String code, final String secretCode) {
+    public CaptchaCodeEntity(final LocalDateTime time, final String code, final String secretCode) {
         this.time = time;
         this.code = code;
         this.secretCode = secretCode;

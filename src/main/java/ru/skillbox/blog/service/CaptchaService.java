@@ -1,17 +1,17 @@
 package ru.skillbox.blog.service;
 
-import ru.skillbox.blog.model.CaptchaCodes;
+import ru.skillbox.blog.model.CaptchaCodeEntity;
 
 /**
  * @author alkarik
  * @link http://alkarik
  */
 public interface CaptchaService {
-    void saveCaptcha(CaptchaCodes captcha);
+    void saveCaptcha(CaptchaCodeEntity captcha);
 
     void deleteOldCaptсhas();
 
-    CaptchaCodes findCaptcha(String code, String secretCode);
+    CaptchaCodeEntity findCaptcha(String code, String secretCode);
 
-    void deleteCaptcha(CaptchaCodes captcha);
+    void deleteCaptcha(CaptchaCodeEntity captcha);
 }

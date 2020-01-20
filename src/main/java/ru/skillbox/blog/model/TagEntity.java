@@ -5,13 +5,15 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * @author alkarik
  * @link http://alkarik
  */
 @Entity
-public class Tags {
+@Table(name = "tags")
+public class TagEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
@@ -20,12 +22,12 @@ public class Tags {
     private String name;
 
 //    @ManyToMany(mappedBy = "tags",fetch = FetchType.EAGER,cascade = CascadeType.PERSIST)
-//    private Set<Posts> posts =new HashSet<>();
+//    private Set<PostEntity> posts =new HashSet<>();
 
-    public Tags() {
+    public TagEntity() {
     }
 
-    public Tags(final String name) {
+    public TagEntity(final String name) {
         this.name = name;
     }
 

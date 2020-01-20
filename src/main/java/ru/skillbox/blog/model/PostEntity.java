@@ -13,16 +13,19 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import ru.skillbox.blog.model.enums.ModerationStatus;
 
 /**
  * @author alkarik
  * @link http://alkarik
  */
 @Entity
-public class Posts {
+@Table(name = "posts")
+public class PostEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
@@ -36,11 +39,11 @@ public class Posts {
 
     @ManyToOne
     @JoinColumn(name = "moderator_id")
-    private Users moderatorId;
+    private UserEntity moderatorId;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private Users userId;
+    private UserEntity userId;
 
     @Column(nullable = false, columnDefinition = "DATETIME")
     private LocalDateTime time;
@@ -60,16 +63,16 @@ public class Posts {
         joinColumns = {@JoinColumn(name = "post_id")},
         inverseJoinColumns = {@JoinColumn(name = "tag_id")}
     )
-    private Set<Tags> tags=new HashSet<>();
+    private Set<TagEntity> tags=new HashSet<>();
 
-    public void addTag(Tags tag) {
+    public void addTag(TagEntity tag) {
         tags.add(tag);
     }
 
-    public void removeTag(Tags tag) {
+    public void removeTag(TagEntity tag) {
         tags.remove(tag);
     }
-    public Posts() {
+    public PostEntity() {
     }
 
     public int getId() {
@@ -96,19 +99,19 @@ public class Posts {
         this.moderationStatus = moderationStatus;
     }
 
-    public Users getModeratorId() {
+    public UserEntity getModeratorId() {
         return moderatorId;
     }
 
-    public void setModeratorId(final Users moderatorId) {
+    public void setModeratorId(final UserEntity moderatorId) {
         this.moderatorId = moderatorId;
     }
 
-    public Users getUserId() {
+    public UserEntity getUserId() {
         return userId;
     }
 
-    public void setUserId(final Users userId) {
+    public void setUserId(final UserEntity userId) {
         this.userId = userId;
     }
 

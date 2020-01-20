@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.skillbox.blog.component.HeaderProperties;
-import ru.skillbox.blog.model.GlobalSettings;
-import ru.skillbox.blog.service.GlobalSettingsService;
+import ru.skillbox.blog.model.GlobalSettingEntity;
+import ru.skillbox.blog.service.GlobalSettingService;
 
 /**
  * @author alkarik
@@ -26,7 +26,7 @@ public class ApiGeneralController {
     private HeaderProperties headerProperties;
 
     @Autowired
-    private GlobalSettingsService globalSettingsService;
+    private GlobalSettingService globalSettingService;
 
     @GetMapping("/init/")
     public ResponseEntity initHeader() {
@@ -47,8 +47,8 @@ public class ApiGeneralController {
         //TODO наличие Авторизация и модератор
         //TODO Валидация входных данных ?
         for (Map.Entry<String, Boolean> entry : globalSettings.entrySet()) {
-            globalSettingsService.createSetting(
-                new GlobalSettings(entry.getKey(), entry.getValue().equals(true) ? "YES" : "NO")
+            globalSettingService.createSetting(
+                new GlobalSettingEntity(entry.getKey(), entry.getValue().equals(true) ? "YES" : "NO")
             );
         }
         return new ResponseEntity(getSettings().toString(), HttpStatus.OK);
@@ -56,7 +56,7 @@ public class ApiGeneralController {
 
     private Map<String, Boolean> getSettings() {
         Map<String, Boolean> glSett = new HashMap<>();
-        for (GlobalSettings glSettings : globalSettingsService.findAll()) {
+        for (GlobalSettingEntity glSettings : globalSettingService.findAll()) {
             glSett.put(glSettings.getCode(), glSettings.getValue().equals("YES") ? true : false);
         }
         return glSett;

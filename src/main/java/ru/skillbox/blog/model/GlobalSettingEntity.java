@@ -5,13 +5,15 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * @author alkarik
  * @link http://alkarik
  */
 @Entity
-public class GlobalSettings {
+@Table(name = "global_settings")
+public class GlobalSettingEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
@@ -25,16 +27,16 @@ public class GlobalSettings {
     @Column(nullable = false)
     private String value;
 
-    public GlobalSettings() {
+    public GlobalSettingEntity() {
     }
 
-    public GlobalSettings(final String code, final String name, final String value) {
+    public GlobalSettingEntity(final String code, final String name, final String value) {
         this.code = code;
         this.name = name;
         this.value = value;
     }
 
-    public GlobalSettings(final String code, final String value) {
+    public GlobalSettingEntity(final String code, final String value) {
         this.code = code;
         this.value = value;
     }

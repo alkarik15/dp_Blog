@@ -1,5 +1,7 @@
 package ru.skillbox.blog.dto;
 
+import ru.skillbox.blog.dto.enums.ParametrMode;
+
 /**
  * @author alkarik
  * @link http://alkarik
@@ -7,7 +9,7 @@ package ru.skillbox.blog.dto;
 public class Param {
     private int offset;
     private int limit;
-    private int mode;
+    private ParametrMode mode;
 
     public int getOffset() {
         return offset;
@@ -25,11 +27,11 @@ public class Param {
         this.limit = limit;
     }
 
-    public int getMode() {
+    public ParametrMode getMode() {
         return mode;
     }
 
-    public void setMode(final int mode) {
+    public void setMode(final ParametrMode mode) {
         this.mode = mode;
     }
 }

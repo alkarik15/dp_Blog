@@ -1,4 +1,4 @@
-package ru.skillbox.blog.model;
+package ru.skillbox.blog.model.enums;
 
 /**
  * @author alkarik

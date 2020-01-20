@@ -4,7 +4,8 @@ import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import ru.skillbox.blog.model.CaptchaCodes;
+import org.springframework.transaction.annotation.Transactional;
+import ru.skillbox.blog.model.CaptchaCodeEntity;
 import ru.skillbox.blog.repository.CaptchaRepository;
 import ru.skillbox.blog.service.CaptchaService;
 
@@ -13,6 +14,7 @@ import ru.skillbox.blog.service.CaptchaService;
  * @link http://alkarik
  */
 @Service
+@Transactional(readOnly = true)
 public class CaptchaServiceImpl implements CaptchaService {
     @Autowired
     private CaptchaRepository captchaRepository;
@@ -21,23 +23,26 @@ public class CaptchaServiceImpl implements CaptchaService {
     private int deleteAfterMin;
 
     @Override
-    public void saveCaptcha(final CaptchaCodes captcha) {
+    @Transactional(readOnly = false)
+    public void saveCaptcha(final CaptchaCodeEntity captcha) {
         captchaRepository.save(captcha);
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void deleteOldCaptсhas() {
         LocalDateTime ldt = LocalDateTime.now().minusMinutes(deleteAfterMin);
         captchaRepository.deleteAllByTimeBefore(ldt);
     }
 
     @Override
-    public CaptchaCodes findCaptcha(final String code, final String secretCode) {
+    public CaptchaCodeEntity findCaptcha(final String code, final String secretCode) {
         return captchaRepository.findByCodeAndSecretCode(code, secretCode);
     }
 
     @Override
-    public void deleteCaptcha(final CaptchaCodes captcha) {
+    @Transactional(readOnly = false)
+    public void deleteCaptcha(final CaptchaCodeEntity captcha) {
         captchaRepository.delete(captcha);
     }
 }

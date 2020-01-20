@@ -7,6 +7,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.time.LocalDate;
 
 /**
@@ -14,18 +15,19 @@ import java.time.LocalDate;
  * @link http://alkarik
  */
 @Entity
-public class PostVotes {
+@Table(name = "post_votes")
+public class PostVoteEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private Users userId;
+    private UserEntity userId;
 
     @ManyToOne
     @JoinColumn(name = "post_id")
-    private Posts postId;
+    private PostEntity postId;
 
     @Column(nullable = false, columnDefinition = "DATETIME")
     private LocalDate time;
@@ -33,7 +35,7 @@ public class PostVotes {
     @Column(nullable = false)
     private byte value;
 
-    public PostVotes() {
+    public PostVoteEntity() {
     }
 
     public int getId() {
@@ -44,19 +46,19 @@ public class PostVotes {
         this.id = id;
     }
 
-    public Users getUserId() {
+    public UserEntity getUserId() {
         return userId;
     }
 
-    public void setUserId(final Users userId) {
+    public void setUserId(final UserEntity userId) {
         this.userId = userId;
     }
 
-    public Posts getPostId() {
+    public PostEntity getPostId() {
         return postId;
     }
 
-    public void setPostId(final Posts postId) {
+    public void setPostId(final PostEntity postId) {
         this.postId = postId;
     }
 

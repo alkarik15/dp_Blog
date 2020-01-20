@@ -23,10 +23,10 @@ import ru.skillbox.blog.dto.CaptchaDto;
 import ru.skillbox.blog.dto.EmailDto;
 import ru.skillbox.blog.dto.ResultsDto;
 import ru.skillbox.blog.dto.UserRegisterDto;
-import ru.skillbox.blog.model.CaptchaCodes;
-import ru.skillbox.blog.model.Users;
+import ru.skillbox.blog.model.CaptchaCodeEntity;
+import ru.skillbox.blog.model.UserEntity;
 import ru.skillbox.blog.service.CaptchaService;
-import ru.skillbox.blog.service.UsersService;
+import ru.skillbox.blog.service.UserService;
 import ru.skillbox.blog.utils.Captcha;
 import ru.skillbox.blog.utils.MailConstructor;
 
@@ -44,8 +44,7 @@ public class ApiAuthController {
     private CaptchaService captchaService;
 
     @Autowired
-    private UsersService usersService;
-
+    private UserService userService;
 
     @Autowired
     private MailConstructor mailConstructor;
@@ -59,16 +58,16 @@ public class ApiAuthController {
         if (userRegister.getPassword().length() < 6) {
             errors.put("password", "Пароль короче 6-ти символов");
         }
-        final CaptchaCodes captcha = captchaService.findCaptcha(userRegister.getCaptcha(), userRegister.getCaptcha_secret());
+        final CaptchaCodeEntity captcha = captchaService.findCaptcha(userRegister.getCaptcha(), userRegister.getCaptchaSecret());
         if (captcha == null) {
             errors.put("captcha", "Код с картинки введен не верно");
         }
-        if (usersService.existEmail(userRegister.getEmail())) {
+        if (userService.existEmail(userRegister.getEmail())) {
             errors.put("email", "Этот e-mail уже зарегистрирован");
         }
         ResultsDto result = new ResultsDto();
         if (errors.size() == 0) {
-            usersService.addUser(new Users(LocalDateTime.now(), userRegister.getName(), userRegister.getEmail(), userRegister.getPassword()));
+            userService.addUser(new UserEntity(LocalDateTime.now(), userRegister.getName(), userRegister.getEmail(), userRegister.getPassword()));
             captchaService.deleteCaptcha(captcha);
             result.setResult(true);
         } else {
@@ -102,7 +101,7 @@ public class ApiAuthController {
         try {
             final byte[] captchaPng = Captcha.getCaptcha(strCode, "png");
             encoded = Base64.getEncoder().encodeToString(captchaPng);
-            CaptchaCodes captcha = new CaptchaCodes(LocalDateTime.now(), strCode, strSecret);
+            CaptchaCodeEntity captcha = new CaptchaCodeEntity(LocalDateTime.now(), strCode, strSecret);
             captchaService.saveCaptcha(captcha);
         } catch (IOException e) {
             e.printStackTrace();
@@ -114,7 +113,7 @@ public class ApiAuthController {
 
     @PostMapping(value = "/restore")
     public ResponseEntity apiPostRestore(HttpServletRequest request, @RequestBody EmailDto email) {
-        final Users user = usersService.findEmail(email.getEmail());
+        final UserEntity user = userService.findEmail(email.getEmail());
         ResultsDto result = new ResultsDto();
         if (user != null) {
             String token = UUID.randomUUID().toString();

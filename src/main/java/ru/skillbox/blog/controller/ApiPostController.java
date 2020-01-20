@@ -1,13 +1,11 @@
 package ru.skillbox.blog.controller;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,17 +19,12 @@ import ru.skillbox.blog.dto.AddPostDto;
 import ru.skillbox.blog.dto.CommentsDto;
 import ru.skillbox.blog.dto.Param;
 import ru.skillbox.blog.dto.PostByIdDto;
-import ru.skillbox.blog.dto.PostDto;
 import ru.skillbox.blog.dto.PostsDto;
 import ru.skillbox.blog.dto.ResultsDto;
-import ru.skillbox.blog.model.ModerationStatus;
-import ru.skillbox.blog.model.PostComments;
-import ru.skillbox.blog.model.Posts;
-import ru.skillbox.blog.model.Tags;
-import ru.skillbox.blog.service.PostCommentsService;
-import ru.skillbox.blog.service.PostVotesService;
-import ru.skillbox.blog.service.PostsService;
-import ru.skillbox.blog.service.TagsService;
+import ru.skillbox.blog.model.enums.ModerationStatus;
+import ru.skillbox.blog.service.PostCommentService;
+import ru.skillbox.blog.service.PostService;
+import ru.skillbox.blog.service.PostVoteService;
 
 /**
  * @author alkarik
@@ -42,43 +35,21 @@ import ru.skillbox.blog.service.TagsService;
 public class ApiPostController {
 
     @Autowired
-    private PostsService postsService;
+    private PostService postService;
 
     @Autowired
-    private PostVotesService postVotesService;
+    private PostVoteService postVoteService;
 
     @Autowired
-    private PostCommentsService postCommentsService;
-
-    @Autowired
-    private TagsService tagsService;
+    private PostCommentService postCommentService;
 
     @GetMapping()
     @ResponseBody
     public String apiPost(Param param) {
-        final List<Posts> allPosts = postsService.findAll();
-        final Map<Integer, String> mapStatLDC = postVotesService.findStatistics();
-
-        PostsDto postsDto = new PostsDto(allPosts.size(), getPost_dtos(allPosts, mapStatLDC));
-
+        final Map<Integer, String> mapStatLDC = postVoteService.findStatistics();
+        PostsDto postsDto = postService.apiPost(param, mapStatLDC);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         return gson.toJson(postsDto);
-    }
-
-    private List<PostDto> getPost_dtos(final List<Posts> allPosts, final Map<Integer, String> mapStatLDC) {
-        ModelMapper modelMapper = new ModelMapper();
-        List<PostDto> postDtos = new ArrayList<>();
-        for (Posts post : allPosts) {
-            PostDto post_dto = modelMapper.map(post, PostDto.class);
-            if (mapStatLDC.containsKey(post_dto.getId())) {
-                final String[] splitLikes = mapStatLDC.get(post_dto.getId()).split(":");
-                post_dto.setLikes(Integer.parseInt(splitLikes[1]));
-                post_dto.setDislikes(Integer.parseInt(splitLikes[2]));
-                post_dto.setComments(Integer.parseInt(splitLikes[3]));
-            }
-            postDtos.add(post_dto);
-        }
-        return postDtos;
     }
 
     @GetMapping("/search")
@@ -88,28 +59,14 @@ public class ApiPostController {
 
     @GetMapping("/{id}")
     public String apiPostById(@PathVariable("id") Integer id) {
-        final Posts postById = postsService.getPostByIdModerationStatusActiveTime(id, (byte) 1, ModerationStatus.ACCEPT, LocalDateTime.now());
-        if (postById == null) {
-            return null;
-        }
-        ModelMapper modelMapper = new ModelMapper();
+        PostByIdDto postByDto = postService.getPostByIdModerationStatusActiveTime(id, (byte) 1, ModerationStatus.ACCEPT, LocalDateTime.now());
 
-        PostByIdDto postByDto = modelMapper.map(postById, PostByIdDto.class);
-
-        String[] stats = postVotesService.findStatPost(id).split(":");
+        String[] stats = postVoteService.findStatPost(id).split(":");
         postByDto.setLikes(Integer.parseInt(stats[1]));
         postByDto.setDislikes(Integer.parseInt(stats[2]));
-
-        List<PostComments> commentsByPostId = postCommentsService.findByPostId(postById);
-        List<CommentsDto> listCommentsDto = new ArrayList<>();
-        for (PostComments postComment : commentsByPostId) {
-            CommentsDto commentDto = modelMapper.map(postComment, CommentsDto.class);
-            listCommentsDto.add(commentDto);
-        }
-
+        List<CommentsDto> listCommentsDto = postCommentService.findByPostId(id);
         postByDto.setComments(listCommentsDto);
 
-        //        Gson gson = new Gson();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         return gson.toJson(postByDto);
     }
@@ -151,23 +108,7 @@ public class ApiPostController {
         ResultsDto result = new ResultsDto();
         if (errors.size() == 0) {
             result.setResult(true);
-
-            ModelMapper modelMapper = new ModelMapper();
-
-            Posts post = modelMapper.map(addPost, Posts.class);
-            post.setModerationStatus(ModerationStatus.NEW);
-            final LocalDateTime nowDateTime = LocalDateTime.now();
-            if (post.getTime().isBefore(nowDateTime)) {
-                post.setTime(nowDateTime);
-            }
-
-            final String[] splitTags = addPost.getTags().split(",");
-            for (String splitTag : splitTags) {
-                Tags ta = tagsService.addTags(splitTag);
-                post.addTag(ta);
-            }
-            postsService.save(post);
-
+            postService.createPostFromDto(addPost, ModerationStatus.NEW, LocalDateTime.now());
         } else {
             result.setResult(false);
             result.setErrors(errors);
