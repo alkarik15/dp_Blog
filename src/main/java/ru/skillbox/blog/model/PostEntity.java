@@ -75,6 +75,7 @@ public class PostEntity {
     public PostEntity() {
     }
 
+
     public int getId() {
         return id;
     }
