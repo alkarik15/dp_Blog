@@ -8,7 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * @author alkarik
@@ -30,12 +30,19 @@ public class PostVoteEntity {
     private PostEntity postId;
 
     @Column(nullable = false, columnDefinition = "DATETIME")
-    private LocalDate time;
+    private LocalDateTime time;
 
     @Column(nullable = false)
     private byte value;
 
     public PostVoteEntity() {
+    }
+
+    public PostVoteEntity(final UserEntity userId, final PostEntity postId, final LocalDateTime time, final byte value) {
+        this.userId = userId;
+        this.postId = postId;
+        this.time = time;
+        this.value = value;
     }
 
     public int getId() {
@@ -62,11 +69,11 @@ public class PostVoteEntity {
         this.postId = postId;
     }
 
-    public LocalDate getTime() {
+    public LocalDateTime getTime() {
         return time;
     }
 
-    public void setTime(final LocalDate time) {
+    public void setTime(final LocalDateTime time) {
         this.time = time;
     }
 

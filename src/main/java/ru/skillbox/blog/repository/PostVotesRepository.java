@@ -4,7 +4,9 @@ import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
+import ru.skillbox.blog.model.PostEntity;
 import ru.skillbox.blog.model.PostVoteEntity;
+import ru.skillbox.blog.model.UserEntity;
 
 /**
  * @author alkarik
@@ -25,4 +27,8 @@ public interface PostVotesRepository extends CrudRepository<PostVoteEntity, Inte
         "p.post_id AS pid, SUM(IF(p.value=1,1,0)) AS likes, SUM(IF(p.value=-1,1,0)) AS dislikes " +
         "FROM Post_Votes p  WHERE p.post_id=?")
     List<Object[]> statPost(Integer id);
+
+    PostVoteEntity findAllByPostIdAndUserId (PostEntity postId, UserEntity userId);
+    void deleteById (Integer id);
+
 }

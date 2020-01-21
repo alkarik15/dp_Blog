@@ -1,5 +1,6 @@
 package ru.skillbox.blog.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -7,6 +8,9 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.skillbox.blog.model.PostEntity;
+import ru.skillbox.blog.model.PostVoteEntity;
+import ru.skillbox.blog.model.UserEntity;
 import ru.skillbox.blog.repository.PostVotesRepository;
 import ru.skillbox.blog.service.PostVoteService;
 
@@ -15,7 +19,7 @@ import ru.skillbox.blog.service.PostVoteService;
  * @link http://alkarik
  */
 @Service
-@Transactional(readOnly=true)
+@Transactional(readOnly = true)
 public class PostVoteServiceImpl implements PostVoteService {
 
     @Autowired
@@ -40,5 +44,59 @@ public class PostVoteServiceImpl implements PostVoteService {
             strStat = String.join(":", Arrays.stream(stat).map(Object::toString).toArray(String[]::new));
         }
         return strStat;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public Boolean findLikeByPostIdAndUserId(final Integer postId, final Integer userId) {
+        PostEntity postEntity = new PostEntity();
+        postEntity.setId(postId);
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        PostVoteEntity postLike = postVotesRepository.findAllByPostIdAndUserId(postEntity, userEntity);
+        if (postLike != null) {
+            final byte value = postLike.getValue();
+            if (value == 1) {
+                return false;
+            } else if (value == -1) {
+                deleteLike(postLike.getId());
+            }
+        } else {
+            setLike(new PostVoteEntity(userEntity,postEntity, LocalDateTime.now(),(byte)1));
+        }
+        return true;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public Boolean findDislikeByPostIdAndUserId(final Integer postId, final Integer userId) {
+        PostEntity postEntity = new PostEntity();
+        postEntity.setId(postId);
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        final PostVoteEntity postLike = postVotesRepository.findAllByPostIdAndUserId(postEntity, userEntity);
+        if (postLike != null) {
+            final byte value = postLike.getValue();
+            if (value == -1) {
+                return false;
+            } else if (value == 1) {
+                deleteLike(postLike.getId());
+            }
+        } else {
+            setLike(new PostVoteEntity(userEntity,postEntity, LocalDateTime.now(),(byte)-1));
+        }
+        return true;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public void setLike(PostVoteEntity postVoteEntity) {
+        postVotesRepository.save(postVoteEntity);
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public void deleteLike(final Integer postId) {
+        postVotesRepository.deleteById(postId);
     }
 }

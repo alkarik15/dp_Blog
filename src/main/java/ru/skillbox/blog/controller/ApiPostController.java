@@ -1,5 +1,6 @@
 package ru.skillbox.blog.controller;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -7,7 +8,9 @@ import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +22,9 @@ import ru.skillbox.blog.dto.AddPostDto;
 import ru.skillbox.blog.dto.CommentsDto;
 import ru.skillbox.blog.dto.Param;
 import ru.skillbox.blog.dto.PostByIdDto;
+import ru.skillbox.blog.dto.PostIdDto;
 import ru.skillbox.blog.dto.PostsDto;
+import ru.skillbox.blog.dto.ResultLoginDto;
 import ru.skillbox.blog.dto.ResultsDto;
 import ru.skillbox.blog.model.enums.ModerationStatus;
 import ru.skillbox.blog.service.PostCommentService;
@@ -118,4 +123,37 @@ public class ApiPostController {
         return gson.toJson(result);
     }
 
+    @PostMapping("/like")
+    public ResponseEntity apiPostLike(HttpServletRequest request, @RequestBody PostIdDto postIdDto) {
+        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
+            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
+            Integer postId = postIdDto.getPost_id();
+            if (postId != null && postId > 0) {
+                Boolean postLike = postVoteService.findLikeByPostIdAndUserId(postId, userId);
+                ResultLoginDto resultLoginDto = new ResultLoginDto();
+                resultLoginDto.setResult(postLike);
+                Gson gson = new Gson();
+                return new ResponseEntity(gson.toJson(resultLoginDto), HttpStatus.OK);
+            } else {
+                return new ResponseEntity("", HttpStatus.OK);
+            }
+        } else {
+            return new ResponseEntity("", HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @PostMapping("/dislike")
+    public ResponseEntity apiPostDislike(HttpServletRequest request, @RequestBody PostIdDto postIdDto) {
+        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
+            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
+            Integer postId = postIdDto.getPost_id();
+            Boolean postLike = postVoteService.findDislikeByPostIdAndUserId(postId, userId);
+            ResultLoginDto resultLoginDto = new ResultLoginDto();
+            resultLoginDto.setResult(postLike);
+            Gson gson = new Gson();
+            return new ResponseEntity(gson.toJson(resultLoginDto), HttpStatus.OK);
+        } else {
+            return new ResponseEntity("", HttpStatus.UNAUTHORIZED);
+        }
+    }
 }
