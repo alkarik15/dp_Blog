@@ -153,7 +153,7 @@ public class ApiPostController {
             Gson gson = new Gson();
             return new ResponseEntity(gson.toJson(resultLoginDto), HttpStatus.OK);
         } else {
-            return new ResponseEntity("", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
         }
     }
 }
