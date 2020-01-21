@@ -2,6 +2,7 @@ package ru.skillbox.blog.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +21,7 @@ import ru.skillbox.blog.dto.PostsDto;
 import ru.skillbox.blog.model.PostEntity;
 import ru.skillbox.blog.model.TagEntity;
 import ru.skillbox.blog.model.enums.ModerationStatus;
+import ru.skillbox.blog.repository.PostVotesRepository;
 import ru.skillbox.blog.repository.PostsRepository;
 import ru.skillbox.blog.service.PostService;
 import ru.skillbox.blog.service.TagService;
@@ -36,6 +38,9 @@ public class PostServiceImpl implements PostService {
     private PostsRepository postsRepository;
 
     @Autowired
+    private PostVotesRepository postVotesRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     @Autowired
@@ -45,16 +50,23 @@ public class PostServiceImpl implements PostService {
     public List<PostEntity> findAllWithParam(Param param) {
         final int offset = param.getOffset();
         int limit = param.getLimit();
-        if(limit<1){limit=1;}
+        if (limit < 1) {
+            limit = 1;
+        }
 
         Sort.Direction sortDir = Sort.Direction.ASC;
-        if(param.getMode().toString().toLowerCase().equals("recent")){ String sortName="time";}
-        if(param.getMode().toString().toLowerCase().equals("early")){ String sortName="time";sortDir = Sort.Direction.DESC;}
-        if(param.getMode().toString().toLowerCase().equals("best")){
+        if (param.getMode().toString().toLowerCase().equals("recent")) {
+            String sortName = "time";
+        }
+        if (param.getMode().toString().toLowerCase().equals("early")) {
+            String sortName = "time";
+            sortDir = Sort.Direction.DESC;
+        }
+        if (param.getMode().toString().toLowerCase().equals("best")) {
 //            TODO Сортировка по убыванию лайков
             sortDir = Sort.Direction.DESC;
         }
-        if(param.getMode().toString().toLowerCase().equals("popular")){
+        if (param.getMode().toString().toLowerCase().equals("popular")) {
 //            TODO Сортировка по убыванию комментариев
             sortDir = Sort.Direction.DESC;
         }
@@ -62,7 +74,7 @@ public class PostServiceImpl implements PostService {
 
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(sortDir, "id"));
         final Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBefore(
-                                                    (byte) 1, ModerationStatus.ACCEPT, LocalDateTime.now(), pag);
+            (byte) 1, ModerationStatus.ACCEPT, LocalDateTime.now(), pag);
         List<PostEntity> posts = new ArrayList<>();
         all.forEach(postEntity -> posts.add(postEntity));
         return posts;
@@ -136,4 +148,37 @@ public class PostServiceImpl implements PostService {
         return postsDto;
     }
 
+    public Map<String, String> statMy(Integer id) {
+        List<Object[]> statMy = postsRepository.statPostShowMy(id);
+        HashMap<String, String> mapStatMy = new HashMap<>();
+        for (Object[] stat : statMy) {
+            mapStatMy.put("Постов", stat[0].toString());
+            mapStatMy.put("Просмотров", stat[1].toString());
+            final String dateTime = stat[2].toString();
+            mapStatMy.put("Первая публикация", dateTime.substring(0,dateTime.lastIndexOf(":")));
+        }
+        statMy = postVotesRepository.statLikeDislikeMy(id);
+        for (Object[] stat : statMy) {
+            mapStatMy.put("Лайков", stat[0].toString());
+            mapStatMy.put("Дизлайков", stat[1].toString());
+        }
+        return mapStatMy;
+    }
+
+    public Map<String, String> statAll() {
+        List<Object[]> statMy = postsRepository.statPostShow();
+        HashMap<String, String> mapStatAll = new HashMap<>();
+        for (Object[] stat : statMy) {
+            mapStatAll.put("Постов", stat[0].toString());
+            mapStatAll.put("Просмотров", stat[1].toString());
+            final String dateTime = stat[2].toString();
+            mapStatAll.put("Первая публикация", dateTime.substring(0,dateTime.lastIndexOf(":")));
+        }
+        statMy = postVotesRepository.statLikeDislike();
+        for (Object[] stat : statMy) {
+            mapStatAll.put("Лайков", stat[0].toString());
+            mapStatAll.put("Дизлайков", stat[1].toString());
+        }
+        return mapStatAll;
+    }
 }

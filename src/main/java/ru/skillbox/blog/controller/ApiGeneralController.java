@@ -1,7 +1,9 @@
 package ru.skillbox.blog.controller;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.skillbox.blog.component.HeaderProperties;
 import ru.skillbox.blog.model.GlobalSettingEntity;
 import ru.skillbox.blog.service.GlobalSettingService;
+import ru.skillbox.blog.service.PostService;
 
 /**
  * @author alkarik
@@ -27,6 +30,9 @@ public class ApiGeneralController {
 
     @Autowired
     private GlobalSettingService globalSettingService;
+
+    @Autowired
+    private PostService postService;
 
     @GetMapping("/init/")
     public ResponseEntity initHeader() {
@@ -60,5 +66,33 @@ public class ApiGeneralController {
             glSett.put(glSettings.getCode(), glSettings.getValue().equals("YES") ? true : false);
         }
         return glSett;
+    }
+
+    @GetMapping("/statistics/my/")
+    public ResponseEntity apiGetStatMy(HttpServletRequest request) {
+        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
+            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
+            Map<String, String> mapStatMy = postService.statMy(userId);
+            Gson gson = new Gson();
+
+            return new ResponseEntity(gson.toJson(mapStatMy), HttpStatus.OK);
+        }
+        return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+    }
+
+    @GetMapping("/statistics/all/")
+    public ResponseEntity apiGetStatAll(HttpServletRequest request) {
+        Map<String, Boolean> sett = getSettings();
+        Boolean isPublic = sett.get("STATISTICS_IS_PUBLIC");
+        if (request.getSession().getAttribute("user") != null
+            && request.getSession().getAttribute("user").toString().length() > 0
+            && isPublic
+        ) {
+            Map<String, String> mapStatMy = postService.statAll();
+            Gson gson = new Gson();
+
+            return new ResponseEntity(gson.toJson(mapStatMy), HttpStatus.OK);
+        }
+        return new ResponseEntity(HttpStatus.UNAUTHORIZED);
     }
 }

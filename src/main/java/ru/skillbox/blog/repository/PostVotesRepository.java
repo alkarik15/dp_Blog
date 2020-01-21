@@ -28,7 +28,18 @@ public interface PostVotesRepository extends CrudRepository<PostVoteEntity, Inte
         "FROM Post_Votes p  WHERE p.post_id=?")
     List<Object[]> statPost(Integer id);
 
-    PostVoteEntity findAllByPostIdAndUserId (PostEntity postId, UserEntity userId);
-    void deleteById (Integer id);
+    PostVoteEntity findAllByPostIdAndUserId(PostEntity postId, UserEntity userId);
+
+    void deleteById(Integer id);
+
+
+    @Query(nativeQuery = true, value = "SELECT SUM(IF(pv.value=1,1,0)) AS likes, SUM(IF(pv.value=-1,1,0)) AS dislikes  " +
+        "FROM post_votes pv " +
+        "WHERE pv.post_id IN (SELECT id FROM posts p WHERE p.user_id=?)")
+    List<Object[]> statLikeDislikeMy(Integer id);
+
+    @Query(nativeQuery = true, value = "SELECT SUM(IF(pv.value=1,1,0)) AS likes, SUM(IF(pv.value=-1,1,0)) AS dislikes  " +
+        "FROM post_votes pv")
+    List<Object[]> statLikeDislike();
 
 }

@@ -33,4 +33,8 @@ public interface PostService {
         final LocalDateTime ldt);
 
     PostsDto apiPost(Param param, Map<Integer, String> mapStatLDC);
+
+    Map<String, String> statMy(Integer id);
+
+    Map<String, String> statAll();
 }
