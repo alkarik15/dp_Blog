@@ -40,3 +40,7 @@ spring.mail.username: alkarik
 spring.mail.password:
 spring.mail.port: 25
 spring.mail.protocol: smtp
+
+upload:
+  path: "src/main/resources"
+  dir: "/upload"
