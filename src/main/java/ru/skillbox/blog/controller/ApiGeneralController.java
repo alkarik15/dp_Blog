@@ -1,18 +1,25 @@
 package ru.skillbox.blog.controller;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import ru.skillbox.blog.component.HeaderProperties;
 import ru.skillbox.blog.model.GlobalSettingEntity;
 import ru.skillbox.blog.service.GlobalSettingService;
@@ -33,6 +40,12 @@ public class ApiGeneralController {
 
     @Autowired
     private PostService postService;
+
+    @Value("${upload.path}")
+    private String uploadPath;
+
+    @Value("${upload.dir}")
+    private String uploadDir;
 
     @GetMapping("/init/")
     public ResponseEntity initHeader() {
@@ -94,5 +107,25 @@ public class ApiGeneralController {
             return new ResponseEntity(gson.toJson(mapStatMy), HttpStatus.OK);
         }
         return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+    }
+
+    @PostMapping("/image/")
+    public String apiPostImage(@RequestParam("image") MultipartFile uploadFile) throws IOException {
+        if (uploadFile.isEmpty()) {
+            return "please select a file!";
+        }
+        String uuidFile = UUID.randomUUID().toString();
+        final String dirPath = uploadDir + "/" + uuidFile.substring(0, 2) + "/"
+            + uuidFile.substring(2, 4) + "/" + uuidFile.substring(4, 6);
+        if (uploadFile != null) {
+            File uploadDir = new File(uploadPath + "/" + dirPath);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+        }
+        final String fileName = "/" + uuidFile.substring(uuidFile.length() - 5)
+            + uploadFile.getOriginalFilename().substring(uploadFile.getOriginalFilename().lastIndexOf("."));
+        uploadFile.transferTo(new File(uploadPath + "/" + dirPath + fileName).getAbsoluteFile());
+        return dirPath + fileName;
     }
 }
