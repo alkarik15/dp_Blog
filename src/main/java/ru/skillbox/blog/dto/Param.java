@@ -1,6 +1,7 @@
 package ru.skillbox.blog.dto;
 
 import ru.skillbox.blog.dto.enums.ParametrMode;
+import ru.skillbox.blog.model.enums.ModerationStatus;
 
 /**
  * @author alkarik
@@ -10,6 +11,7 @@ public class Param {
     private int offset;
     private int limit;
     private ParametrMode mode;
+    private ModerationStatus status;
 
     public int getOffset() {
         return offset;
@@ -33,5 +35,13 @@ public class Param {
 
     public void setMode(final ParametrMode mode) {
         this.mode = mode;
+    }
+
+    public ModerationStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(final ModerationStatus status) {
+        this.status = status;
     }
 }

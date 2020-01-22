@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jsoup.Jsoup;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,9 +18,12 @@ import ru.skillbox.blog.dto.AddPostDto;
 import ru.skillbox.blog.dto.Param;
 import ru.skillbox.blog.dto.PostByIdDto;
 import ru.skillbox.blog.dto.PostDto;
+import ru.skillbox.blog.dto.PostModeration;
 import ru.skillbox.blog.dto.PostsDto;
+import ru.skillbox.blog.dto.UserDto;
 import ru.skillbox.blog.model.PostEntity;
 import ru.skillbox.blog.model.TagEntity;
+import ru.skillbox.blog.model.UserEntity;
 import ru.skillbox.blog.model.enums.ModerationStatus;
 import ru.skillbox.blog.repository.PostVotesRepository;
 import ru.skillbox.blog.repository.PostsRepository;
@@ -55,11 +59,12 @@ public class PostServiceImpl implements PostService {
         }
 
         Sort.Direction sortDir = Sort.Direction.ASC;
+        String sortName = "id";
         if (param.getMode().toString().toLowerCase().equals("recent")) {
-            String sortName = "time";
+            sortName = "time";
         }
         if (param.getMode().toString().toLowerCase().equals("early")) {
-            String sortName = "time";
+            sortName = "time";
             sortDir = Sort.Direction.DESC;
         }
         if (param.getMode().toString().toLowerCase().equals("best")) {
@@ -72,9 +77,9 @@ public class PostServiceImpl implements PostService {
         }
 
 
-        final PageRequest pag = PageRequest.of(offset, limit, Sort.by(sortDir, "id"));
+        final PageRequest pag = PageRequest.of(offset, limit, Sort.by(sortDir, sortName));
         final Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBefore(
-            (byte) 1, ModerationStatus.ACCEPT, LocalDateTime.now(), pag);
+            (byte) 1, ModerationStatus.ACCEPTED, LocalDateTime.now(), pag);
         List<PostEntity> posts = new ArrayList<>();
         all.forEach(postEntity -> posts.add(postEntity));
         return posts;
@@ -135,6 +140,10 @@ public class PostServiceImpl implements PostService {
         List<PostDto> postDtos = new ArrayList<>();
         for (PostEntity post : allPosts) {
             PostDto postDto = modelMapper.map(post, PostDto.class);
+            UserDto userDto = modelMapper.map(post.getUserId(), UserDto.class);
+            postDto.setAnnonce(Jsoup.parse(postDto.getText()).text());
+            postDto.setText(null);
+            postDto.setUser(userDto);
             if (mapStatLDC.containsKey(postDto.getId())) {
                 final String[] splitLikes = mapStatLDC.get(postDto.getId()).split(":");
                 postDto.setLikes(Integer.parseInt(splitLikes[1]));
@@ -180,5 +189,57 @@ public class PostServiceImpl implements PostService {
             mapStatAll.put("Дизлайков", stat[1].toString());
         }
         return mapStatAll;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public PostsDto apiPostModeration(Param param) {
+
+        final Integer count = countAll();
+        final List<PostEntity> allPosts = findAllWithParamStatus(param);
+
+        List<PostDto> postDtos = new ArrayList<>();
+        for (PostEntity post : allPosts) {
+            PostDto postDto = modelMapper.map(post, PostDto.class);
+            UserDto userDto = modelMapper.map(post.getUserId(), UserDto.class);
+            postDto.setUser(userDto);
+            postDto.setAnnonce(Jsoup.parse(postDto.getText()).text());
+            postDto.setText(null);
+            postDtos.add(postDto);
+        }
+
+        PostsDto postsDto = new PostsDto(count, postDtos);
+        return postsDto;
+    }
+
+    public List<PostEntity> findAllWithParamStatus(Param param) {
+        final int offset = param.getOffset();
+        int limit = param.getLimit();
+        if (limit < 1) {
+            limit = 1;
+        }
+        final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "id"));
+        final Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatus(
+            (byte) 1, param.getStatus(),  pag);
+        List<PostEntity> posts = new ArrayList<>();
+        all.forEach(postEntity -> posts.add(postEntity));
+        return posts;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public void setModeration(final PostModeration postModeration, final Integer moderatorId) {
+        PostEntity post=postsRepository.findById(postModeration.getPostId()).orElse(null);
+            ModerationStatus ms=ModerationStatus.NEW;
+        if(postModeration.getDecision().toLowerCase().equals("decline")){
+            ms=ModerationStatus.DECLINED;
+        }
+        if(postModeration.getDecision().toLowerCase().equals("accept")){
+           ms=ModerationStatus.ACCEPTED;
+        }
+        post.setModerationStatus(ms);
+        UserEntity moderator=new UserEntity();
+        moderator.setId(moderatorId);
+        post.setModeratorId(moderator);
     }
 }

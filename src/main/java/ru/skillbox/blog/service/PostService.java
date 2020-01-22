@@ -6,6 +6,7 @@ import java.util.Map;
 import ru.skillbox.blog.dto.AddPostDto;
 import ru.skillbox.blog.dto.Param;
 import ru.skillbox.blog.dto.PostByIdDto;
+import ru.skillbox.blog.dto.PostModeration;
 import ru.skillbox.blog.dto.PostsDto;
 import ru.skillbox.blog.model.PostEntity;
 import ru.skillbox.blog.model.enums.ModerationStatus;
@@ -37,4 +38,6 @@ public interface PostService {
     Map<String, String> statMy(Integer id);
 
     Map<String, String> statAll();
+    PostsDto apiPostModeration(Param param);
+    void setModeration(PostModeration postModeration,Integer moderatorId);
 }

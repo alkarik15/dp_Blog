@@ -18,6 +18,8 @@ public class PostDto {
 
     private String text;
 
+    private String annonce;
+
     private int viewCount;
 
     private int likes;
@@ -31,6 +33,14 @@ public class PostDto {
 
     public PostDto(final String title) {
         this.title = title;
+    }
+
+    public String getAnnonce() {
+        return annonce;
+    }
+
+    public void setAnnonce(final String annonce) {
+        this.annonce = annonce;
     }
 
     public int getLikes() {
