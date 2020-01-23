@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skillbox.blog.component.HeaderProperties;
+import ru.skillbox.blog.dto.PostModeration;
 import ru.skillbox.blog.model.GlobalSettingEntity;
 import ru.skillbox.blog.service.GlobalSettingService;
 import ru.skillbox.blog.service.PostService;
@@ -127,5 +128,16 @@ public class ApiGeneralController {
             + uploadFile.getOriginalFilename().substring(uploadFile.getOriginalFilename().lastIndexOf("."));
         uploadFile.transferTo(new File(uploadPath + "/" + dirPath + fileName).getAbsoluteFile());
         return dirPath + fileName;
+    }
+
+    @PostMapping("/moderation/")
+    public ResponseEntity apiPostImage(HttpServletRequest request, @RequestBody PostModeration postModeration) {
+        if (request.getSession().getAttribute("user") != null
+            && request.getSession().getAttribute("user").toString().length() > 0) {
+            Integer moderatorId = Integer.parseInt(request.getSession().getAttribute("user").toString());
+            postService.setModeration(postModeration, moderatorId);
+            return new ResponseEntity(HttpStatus.OK);
+        }
+        return new ResponseEntity(HttpStatus.UNAUTHORIZED);
     }
 }

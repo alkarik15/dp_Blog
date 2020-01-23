@@ -6,6 +6,6 @@ package ru.skillbox.blog.model.enums;
  */
 public enum ModerationStatus {
     NEW,
-    ACCEPT,
+    ACCEPTED,
     DECLINED
 }

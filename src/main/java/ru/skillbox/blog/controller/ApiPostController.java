@@ -2,11 +2,14 @@ package ru.skillbox.blog.controller;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -53,18 +56,34 @@ public class ApiPostController {
     public String apiPost(Param param) {
         final Map<Integer, String> mapStatLDC = postVoteService.findStatistics();
         PostsDto postsDto = postService.apiPost(param, mapStatLDC);
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDateTime.class,
+            (JsonSerializer<LocalDateTime>)
+                (src, typeOfSrc, context) ->
+                    src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))))
+            .create();
         return gson.toJson(postsDto);
     }
 
     @GetMapping("/search")
-    public String apiPostSearch(Param param) {
-        return null;
+    public ResponseEntity apiPostSearch(@RequestBody Param param) {
+        PostsDto allPostSearch=null;
+        if(param.getQuery().equals("")){
+            //search all
+            allPostSearch = postService.getAllPostSearch(param);
+        }else{
+            //search by query
+            allPostSearch = postService.getAllPostSearchByQuery(param, param.getQuery());
+        }
+        Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDateTime.class,
+            (JsonSerializer<LocalDateTime>)
+                (src, typeOfSrc, context) ->
+                    src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")))).create();
+        return new ResponseEntity(gson.toJson(allPostSearch),HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public String apiPostById(@PathVariable("id") Integer id) {
-        PostByIdDto postByDto = postService.getPostByIdModerationStatusActiveTime(id, (byte) 1, ModerationStatus.ACCEPT, LocalDateTime.now());
+        PostByIdDto postByDto = postService.getPostByIdModerationStatusActiveTime(id, (byte) 1, ModerationStatus.ACCEPTED, LocalDateTime.now());
 
         String[] stats = postVoteService.findStatPost(id).split(":");
         postByDto.setLikes(Integer.parseInt(stats[1]));
@@ -88,7 +107,13 @@ public class ApiPostController {
 
     @GetMapping("/moderation")
     public String apiPostModeration(Param param) {
-        return null;
+        PostsDto postsDto = postService.apiPostModeration(param);
+        Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDateTime.class,
+            (JsonSerializer<LocalDateTime>)
+                (src, typeOfSrc, context) ->
+                    src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))))
+            .create();
+        return gson.toJson(postsDto);
     }
 
     @GetMapping("/my")

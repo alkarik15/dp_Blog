@@ -11,6 +11,11 @@ spring:
     properties:
       hibernate:
         type: TRACE
+
+  jackson:
+    serialization:
+      write_dates_as_timestamps: false
+
 global:
   settings:
     - code: MULTIUSER_MODE
@@ -44,3 +49,5 @@ spring.mail.protocol: smtp
 upload:
   path: "src/main/resources"
   dir: "/upload"
+
+
