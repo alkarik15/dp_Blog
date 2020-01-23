@@ -193,40 +193,14 @@ public class PostServiceImpl implements PostService {
     public PostsDto apiPostModeration(Param param) {
 
         final Integer count = countAll();
-//        final List<PostEntity> allPosts = findAllWithParamStatus(param);
         final int offset = param.getOffset();
         int limit = param.getLimit() < 1 ? 1 : param.getLimit();
 
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "id"));
-        final Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatus(
-            (byte) 1, param.getStatus(), pag);
-//        List<PostEntity> posts = new ArrayList<>();
-//        all.forEach(postEntity -> posts.add(postEntity));
-        PostsDto postsDto = getPostsDto(count, all);
-//        List<PostDto> postDtos = new ArrayList<>();
-//        for (PostEntity post : all) {
-//            PostDto postDto = modelMapper.map(post, PostDto.class);
-//            UserDto userDto = modelMapper.map(post.getUserId(), UserDto.class);
-//            postDto.setUser(userDto);
-//            postDto.setAnnonce(Jsoup.parse(postDto.getText()).text());
-//            postDto.setText(null);
-//            postDtos.add(postDto);
-//        }
+        Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatus((byte) 1, param.getStatus(), pag);
 
-        //  PostsDto postsDto = new PostsDto(count, postDtos);
+        PostsDto postsDto = getPostsDto(count, all, false);
         return postsDto;
-    }
-
-    public List<PostEntity> findAllWithParamStatus(Param param) {
-        final int offset = param.getOffset();
-        int limit = param.getLimit() < 1 ? 1 : param.getLimit();
-
-        final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "id"));
-        final Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatus(
-            (byte) 1, param.getStatus(), pag);
-        List<PostEntity> posts = new ArrayList<>();
-        all.forEach(postEntity -> posts.add(postEntity));
-        return posts;
     }
 
     @Override
@@ -256,7 +230,7 @@ public class PostServiceImpl implements PostService {
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "time"));
         final Page<PostEntity> allPosts = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBefore(
             (byte) 1, ModerationStatus.ACCEPTED, LocalDateTime.now(), pag);
-        return getPostsDto(count, allPosts);
+        return getPostsDto(count, allPosts, true);
     }
 
     @Override
@@ -265,14 +239,14 @@ public class PostServiceImpl implements PostService {
             ModerationStatus.ACCEPTED, LocalDateTime.now(), query);
         final int offset = param.getOffset();
         int limit = param.getLimit() < 1 ? 1 : param.getLimit();
-
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "time"));
         final Page<PostEntity> allPosts = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains(
             (byte) 1, ModerationStatus.ACCEPTED, LocalDateTime.now(), query, pag);
-        return getPostsDto(count, allPosts);
+        return getPostsDto(count, allPosts, true);
     }
 
-    private PostsDto getPostsDto(final Integer count, final Page<PostEntity> allPosts) {
+
+    private PostsDto getPostsDto(final Integer count, final Page<PostEntity> allPosts, Boolean needStat) {
         List<PostDto> postDtos = new ArrayList<>();
         for (PostEntity post : allPosts) {
             PostDto postDto = modelMapper.map(post, PostDto.class);
@@ -280,6 +254,16 @@ public class PostServiceImpl implements PostService {
             postDto.setUser(userDto);
             postDto.setAnnonce(Jsoup.parse(postDto.getText()).text());
             postDto.setText(null);
+            if (needStat) {
+                List<Object[]> statLD = postVotesRepository.statLikeDislikeCountCommentByPostId(post.getId());
+                for (Object[] stat : statLD) {
+                    postDto.setLikes(Integer.parseInt(stat[0].toString()));
+                    postDto.setDislikes(Integer.parseInt(stat[1].toString()));
+                    postDto.setComments(Integer.parseInt(stat[2].toString()));
+                }
+            } else {
+                postDto.setViewCount(null);
+            }
             postDtos.add(postDto);
         }
         return new PostsDto(count, postDtos);

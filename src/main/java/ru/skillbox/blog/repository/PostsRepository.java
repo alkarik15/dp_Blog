@@ -38,4 +38,12 @@ public interface PostsRepository extends JpaRepository<PostEntity, Integer> {
 
     Integer countAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains(Byte isActive, ModerationStatus moderationStatus, LocalDateTime ldt, String query);
 
+//    @Query(nativeQuery = true, value = "SELECT p.id,p.time,p.user_id,p.title,p.text, p.view_count as viewCount, SUM(IF(pv.value=1,1,0)) AS likeCount, " +
+//        " SUM(IF(pv.value=-1,1,0)) AS dislikCount, COUNT(DISTINCT(pc.id)) AS commentCount " +
+//    " FROM posts p " +
+//    " LEFT JOIN post_votes pv ON p.id = pv.post_id " +
+//    " LEFT JOIN post_comments pc ON p.id = pc.post_id " +
+//    " WHERE p.is_active=? AND  p.moderation_status=? AND  p.time<=? " +
+//    " GROUP BY p.id LIMIT ?,?")
+//   List<Object[]> fff(Byte isActive, String moderationStatus, LocalDateTime ldt, int offset,int limit);
 }

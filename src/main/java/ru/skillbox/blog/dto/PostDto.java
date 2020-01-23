@@ -20,13 +20,13 @@ public class PostDto {
 
     private String annonce;
 
-    private int viewCount;
+    private Integer viewCount;
 
-    private int likes;
+    private Integer likes;
 
-    private int dislikes;
+    private Integer dislikes;
 
-    private int comments;
+    private Integer comments;
 
     public PostDto() {
     }
@@ -43,28 +43,28 @@ public class PostDto {
         this.annonce = annonce;
     }
 
-    public int getLikes() {
+    public Integer getLikes() {
         return likes;
     }
 
-    public void setLikes(final int likes) {
+    public void setLikes(final Integer likes) {
         this.likes = likes;
     }
 
-    public int getDislikes() {
+    public Integer getDislikes() {
         return dislikes;
     }
 
-    public int getComments() {
+    public void setDislikes(final Integer dislikes) {
+        this.dislikes = dislikes;
+    }
+
+    public Integer getComments() {
         return comments;
     }
 
-    public void setComments(final int comments) {
+    public void setComments(final Integer comments) {
         this.comments = comments;
-    }
-
-    public void setDislikes(final int dislikes) {
-        this.dislikes = dislikes;
     }
 
     public int getId() {
@@ -107,11 +107,11 @@ public class PostDto {
         this.text = text;
     }
 
-    public int getViewCount() {
+    public Integer getViewCount() {
         return viewCount;
     }
 
-    public void setViewCount(final int viewCount) {
+    public void setViewCount(final Integer viewCount) {
         this.viewCount = viewCount;
     }
 }
