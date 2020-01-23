@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class PostModeration {
     @JsonProperty("post_id")
     private Integer postId;
+
     private String decision;
 
     public Integer getPostId() {

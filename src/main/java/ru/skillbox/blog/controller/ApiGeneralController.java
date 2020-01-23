@@ -131,11 +131,11 @@ public class ApiGeneralController {
     }
 
     @PostMapping("/moderation/")
-    public ResponseEntity apiPostImage(HttpServletRequest request,@RequestBody PostModeration postModeration){
+    public ResponseEntity apiPostImage(HttpServletRequest request, @RequestBody PostModeration postModeration) {
         if (request.getSession().getAttribute("user") != null
             && request.getSession().getAttribute("user").toString().length() > 0) {
-            Integer moderatorId=Integer.parseInt(request.getSession().getAttribute("user").toString());
-            postService.setModeration(postModeration,moderatorId);
+            Integer moderatorId = Integer.parseInt(request.getSession().getAttribute("user").toString());
+            postService.setModeration(postModeration, moderatorId);
             return new ResponseEntity(HttpStatus.OK);
         }
         return new ResponseEntity(HttpStatus.UNAUTHORIZED);

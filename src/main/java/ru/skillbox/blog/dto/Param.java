@@ -9,9 +9,22 @@ import ru.skillbox.blog.model.enums.ModerationStatus;
  */
 public class Param {
     private int offset;
+
     private int limit;
+
     private ParametrMode mode;
+
     private ModerationStatus status;
+
+    private String query;
+
+    public String getQuery() {
+        return query;
+    }
+
+    public void setQuery(final String query) {
+        this.query = query;
+    }
 
     public int getOffset() {
         return offset;

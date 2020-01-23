@@ -65,8 +65,20 @@ public class ApiPostController {
     }
 
     @GetMapping("/search")
-    public String apiPostSearch(Param param) {
-        return null;
+    public ResponseEntity apiPostSearch(@RequestBody Param param) {
+        PostsDto allPostSearch=null;
+        if(param.getQuery().equals("")){
+            //search all
+            allPostSearch = postService.getAllPostSearch(param);
+        }else{
+            //search by query
+            allPostSearch = postService.getAllPostSearchByQuery(param, param.getQuery());
+        }
+        Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDateTime.class,
+            (JsonSerializer<LocalDateTime>)
+                (src, typeOfSrc, context) ->
+                    src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")))).create();
+        return new ResponseEntity(gson.toJson(allPostSearch),HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

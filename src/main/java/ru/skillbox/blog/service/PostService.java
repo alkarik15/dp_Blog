@@ -16,9 +16,11 @@ import ru.skillbox.blog.model.enums.ModerationStatus;
  * @link http://alkarik
  */
 public interface PostService {
+    Integer countAll();
+
     List<PostEntity> findAllWithParam(Param param);
 
-    Integer countAll();
+    PostsDto apiPost(Param param, Map<Integer, String> mapStatLDC);
 
     void save(PostEntity posts);
 
@@ -33,11 +35,15 @@ public interface PostService {
         final ModerationStatus modStatus,
         final LocalDateTime ldt);
 
-    PostsDto apiPost(Param param, Map<Integer, String> mapStatLDC);
 
     Map<String, String> statMy(Integer id);
 
     Map<String, String> statAll();
+
+    void setModeration(PostModeration postModeration, Integer moderatorId);
+
     PostsDto apiPostModeration(Param param);
-    void setModeration(PostModeration postModeration,Integer moderatorId);
+
+    PostsDto getAllPostSearch(Param param);
+    PostsDto getAllPostSearchByQuery(Param param,String query);
 }

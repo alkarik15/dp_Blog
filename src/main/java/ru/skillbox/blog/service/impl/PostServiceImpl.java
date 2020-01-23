@@ -53,10 +53,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<PostEntity> findAllWithParam(Param param) {
         final int offset = param.getOffset();
-        int limit = param.getLimit();
-        if (limit < 1) {
-            limit = 1;
-        }
+        int limit = param.getLimit() < 1 ? 1 : param.getLimit();
 
         Sort.Direction sortDir = Sort.Direction.ASC;
         String sortName = "id";
@@ -164,7 +161,7 @@ public class PostServiceImpl implements PostService {
             mapStatMy.put("Постов", stat[0].toString());
             mapStatMy.put("Просмотров", stat[1].toString());
             final String dateTime = stat[2].toString();
-            mapStatMy.put("Первая публикация", dateTime.substring(0,dateTime.lastIndexOf(":")));
+            mapStatMy.put("Первая публикация", dateTime.substring(0, dateTime.lastIndexOf(":")));
         }
         statMy = postVotesRepository.statLikeDislikeMy(id);
         for (Object[] stat : statMy) {
@@ -181,7 +178,7 @@ public class PostServiceImpl implements PostService {
             mapStatAll.put("Постов", stat[0].toString());
             mapStatAll.put("Просмотров", stat[1].toString());
             final String dateTime = stat[2].toString();
-            mapStatAll.put("Первая публикация", dateTime.substring(0,dateTime.lastIndexOf(":")));
+            mapStatAll.put("Первая публикация", dateTime.substring(0, dateTime.lastIndexOf(":")));
         }
         statMy = postVotesRepository.statLikeDislike();
         for (Object[] stat : statMy) {
@@ -196,8 +193,86 @@ public class PostServiceImpl implements PostService {
     public PostsDto apiPostModeration(Param param) {
 
         final Integer count = countAll();
-        final List<PostEntity> allPosts = findAllWithParamStatus(param);
+//        final List<PostEntity> allPosts = findAllWithParamStatus(param);
+        final int offset = param.getOffset();
+        int limit = param.getLimit() < 1 ? 1 : param.getLimit();
 
+        final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "id"));
+        final Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatus(
+            (byte) 1, param.getStatus(), pag);
+//        List<PostEntity> posts = new ArrayList<>();
+//        all.forEach(postEntity -> posts.add(postEntity));
+        PostsDto postsDto = getPostsDto(count, all);
+//        List<PostDto> postDtos = new ArrayList<>();
+//        for (PostEntity post : all) {
+//            PostDto postDto = modelMapper.map(post, PostDto.class);
+//            UserDto userDto = modelMapper.map(post.getUserId(), UserDto.class);
+//            postDto.setUser(userDto);
+//            postDto.setAnnonce(Jsoup.parse(postDto.getText()).text());
+//            postDto.setText(null);
+//            postDtos.add(postDto);
+//        }
+
+        //  PostsDto postsDto = new PostsDto(count, postDtos);
+        return postsDto;
+    }
+
+    public List<PostEntity> findAllWithParamStatus(Param param) {
+        final int offset = param.getOffset();
+        int limit = param.getLimit() < 1 ? 1 : param.getLimit();
+
+        final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "id"));
+        final Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatus(
+            (byte) 1, param.getStatus(), pag);
+        List<PostEntity> posts = new ArrayList<>();
+        all.forEach(postEntity -> posts.add(postEntity));
+        return posts;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public void setModeration(final PostModeration postModeration, final Integer moderatorId) {
+        PostEntity post = postsRepository.findById(postModeration.getPostId()).orElse(null);
+        ModerationStatus ms = ModerationStatus.NEW;
+        if (postModeration.getDecision().toLowerCase().equals("decline")) {
+            ms = ModerationStatus.DECLINED;
+        }
+        if (postModeration.getDecision().toLowerCase().equals("accept")) {
+            ms = ModerationStatus.ACCEPTED;
+        }
+        post.setModerationStatus(ms);
+        UserEntity moderator = new UserEntity();
+        moderator.setId(moderatorId);
+        post.setModeratorId(moderator);
+    }
+
+    @Override
+    public PostsDto getAllPostSearch(final Param param) {
+        final Integer count = postsRepository.countAllByIsActiveAndModerationStatusAndTimeIsBefore((byte) 1,
+            ModerationStatus.ACCEPTED, LocalDateTime.now());
+        final int offset = param.getOffset();
+        int limit = param.getLimit() < 1 ? 1 : param.getLimit();
+
+        final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "time"));
+        final Page<PostEntity> allPosts = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBefore(
+            (byte) 1, ModerationStatus.ACCEPTED, LocalDateTime.now(), pag);
+        return getPostsDto(count, allPosts);
+    }
+
+    @Override
+    public PostsDto getAllPostSearchByQuery(final Param param, final String query) {
+        final Integer count = postsRepository.countAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains((byte) 1,
+            ModerationStatus.ACCEPTED, LocalDateTime.now(), query);
+        final int offset = param.getOffset();
+        int limit = param.getLimit() < 1 ? 1 : param.getLimit();
+
+        final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "time"));
+        final Page<PostEntity> allPosts = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains(
+            (byte) 1, ModerationStatus.ACCEPTED, LocalDateTime.now(), query, pag);
+        return getPostsDto(count, allPosts);
+    }
+
+    private PostsDto getPostsDto(final Integer count, final Page<PostEntity> allPosts) {
         List<PostDto> postDtos = new ArrayList<>();
         for (PostEntity post : allPosts) {
             PostDto postDto = modelMapper.map(post, PostDto.class);
@@ -207,39 +282,6 @@ public class PostServiceImpl implements PostService {
             postDto.setText(null);
             postDtos.add(postDto);
         }
-
-        PostsDto postsDto = new PostsDto(count, postDtos);
-        return postsDto;
-    }
-
-    public List<PostEntity> findAllWithParamStatus(Param param) {
-        final int offset = param.getOffset();
-        int limit = param.getLimit();
-        if (limit < 1) {
-            limit = 1;
-        }
-        final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "id"));
-        final Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatus(
-            (byte) 1, param.getStatus(),  pag);
-        List<PostEntity> posts = new ArrayList<>();
-        all.forEach(postEntity -> posts.add(postEntity));
-        return posts;
-    }
-
-    @Override
-    @Transactional(readOnly = false)
-    public void setModeration(final PostModeration postModeration, final Integer moderatorId) {
-        PostEntity post=postsRepository.findById(postModeration.getPostId()).orElse(null);
-            ModerationStatus ms=ModerationStatus.NEW;
-        if(postModeration.getDecision().toLowerCase().equals("decline")){
-            ms=ModerationStatus.DECLINED;
-        }
-        if(postModeration.getDecision().toLowerCase().equals("accept")){
-           ms=ModerationStatus.ACCEPTED;
-        }
-        post.setModerationStatus(ms);
-        UserEntity moderator=new UserEntity();
-        moderator.setId(moderatorId);
-        post.setModeratorId(moderator);
+        return new PostsDto(count, postDtos);
     }
 }

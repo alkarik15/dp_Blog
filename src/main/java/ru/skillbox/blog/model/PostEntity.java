@@ -57,13 +57,13 @@ public class PostEntity {
     @Column(nullable = false)
     private int viewCount;
 
-    @ManyToMany(cascade = CascadeType.PERSIST,fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     @JoinTable(
         name = "tag2post",
         joinColumns = {@JoinColumn(name = "post_id")},
         inverseJoinColumns = {@JoinColumn(name = "tag_id")}
     )
-    private Set<TagEntity> tags=new HashSet<>();
+    private Set<TagEntity> tags = new HashSet<>();
 
     public void addTag(TagEntity tag) {
         tags.add(tag);
@@ -72,6 +72,7 @@ public class PostEntity {
     public void removeTag(TagEntity tag) {
         tags.remove(tag);
     }
+
     public PostEntity() {
     }
 
