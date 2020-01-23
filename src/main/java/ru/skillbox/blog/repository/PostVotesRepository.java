@@ -42,4 +42,10 @@ public interface PostVotesRepository extends CrudRepository<PostVoteEntity, Inte
         "FROM post_votes pv")
     List<Object[]> statLikeDislike();
 
+    @Query(nativeQuery = true, value = "SELECT SUM(IF(pv.value=1,1,0)) AS likes, SUM(IF(pv.value=-1,1,0)) AS dislikes," +
+        " COUNT(DISTINCT(pc.id)) as commentCount " +
+        "  FROM post_votes pv " +
+        "  LEFT JOIN post_comments pc ON pv.post_id = pc.post_id  " +
+        "  WHERE pv.post_id=?")
+    List<Object[]> statLikeDislikeCountCommentByPostId(Integer id);
 }
