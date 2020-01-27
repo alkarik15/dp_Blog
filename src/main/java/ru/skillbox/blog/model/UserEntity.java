@@ -20,7 +20,7 @@ public class UserEntity {
     private int id;
 
     @Column(nullable = false)
-    private byte isModerator;
+    private Boolean isModerator;
 
     @Column(nullable = false, columnDefinition = "DATETIME")
     private LocalDateTime regTime;
@@ -57,11 +57,11 @@ public class UserEntity {
         this.id = id;
     }
 
-    public byte getIsModerator() {
+    public Boolean getIsModerator() {
         return isModerator;
     }
 
-    public void setIsModerator(final byte isModerator) {
+    public void setIsModerator(final Boolean isModerator) {
         this.isModerator = isModerator;
     }
 

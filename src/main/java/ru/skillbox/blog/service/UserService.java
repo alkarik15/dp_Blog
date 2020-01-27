@@ -16,4 +16,6 @@ public interface UserService {
     UserEntity findEmail(String email);
 
     ResultLoginDto findUserByEmailAndPassword(LoginDto loginDto);
+
+    Boolean isModerator(Integer userId);
 }

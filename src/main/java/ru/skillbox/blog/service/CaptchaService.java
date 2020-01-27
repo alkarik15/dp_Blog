@@ -1,5 +1,6 @@
 package ru.skillbox.blog.service;
 
+import ru.skillbox.blog.dto.CaptchaDto;
 import ru.skillbox.blog.model.CaptchaCodeEntity;
 
 /**
@@ -14,4 +15,7 @@ public interface CaptchaService {
     CaptchaCodeEntity findCaptcha(String code, String secretCode);
 
     void deleteCaptcha(CaptchaCodeEntity captcha);
+
+    CaptchaDto generateCaptchaDto();
+
 }

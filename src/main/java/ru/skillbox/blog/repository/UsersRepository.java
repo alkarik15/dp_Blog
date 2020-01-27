@@ -12,5 +12,6 @@ import ru.skillbox.blog.model.UserEntity;
 public interface UsersRepository extends CrudRepository<UserEntity, Integer> {
     boolean existsByEmail(String email);
     UserEntity findByEmail(String email);
+    UserEntity findAllById(Integer id);
     UserEntity findByEmailAndPassword(String email,String password);
 }

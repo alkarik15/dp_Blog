@@ -8,5 +8,6 @@ public enum ParametrMode {
     recent,
     popular,
     best,
-    early
+    early;
+
 }

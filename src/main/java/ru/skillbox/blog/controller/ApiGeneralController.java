@@ -25,6 +25,7 @@ import ru.skillbox.blog.dto.PostModeration;
 import ru.skillbox.blog.model.GlobalSettingEntity;
 import ru.skillbox.blog.service.GlobalSettingService;
 import ru.skillbox.blog.service.PostService;
+import ru.skillbox.blog.service.UserService;
 
 /**
  * @author alkarik
@@ -42,6 +43,9 @@ public class ApiGeneralController {
     @Autowired
     private PostService postService;
 
+    @Autowired
+    private UserService userService;
+
     @Value("${upload.path}")
     private String uploadPath;
 
@@ -49,29 +53,36 @@ public class ApiGeneralController {
     private String uploadDir;
 
     @GetMapping("/init/")
-    public ResponseEntity initHeader() {
-        StringBuilder sb = new StringBuilder("{");
-        headerProperties.getHeader().forEach((s, s2) -> sb.append("'").append(s).append("': '").append(s2).append("',"));
-        sb.append("}");
-        return new ResponseEntity(sb, HttpStatus.OK);
+    public ResponseEntity<Map<String, String>> initHeader() {
+        return new ResponseEntity(headerProperties.getHeader(), HttpStatus.OK);
     }
 
     @GetMapping("/settings/")
-    public ResponseEntity apiGetSettings() {
-        //TODO наличие Авторизация и модератор
-        return new ResponseEntity(getSettings().toString(), HttpStatus.OK);
+    public ResponseEntity<Map<String, Boolean>> apiGetSettings(HttpServletRequest request) {
+        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
+            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
+            if (userService.isModerator(userId)) {
+                return new ResponseEntity(getSettings(), HttpStatus.OK);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @PutMapping(value = "/settings/")
-    public ResponseEntity apiPutSettings(@RequestBody Map<String, Boolean> globalSettings) throws HttpMessageNotReadableException {
-        //TODO наличие Авторизация и модератор
-        //TODO Валидация входных данных ?
-        for (Map.Entry<String, Boolean> entry : globalSettings.entrySet()) {
-            globalSettingService.createSetting(
-                new GlobalSettingEntity(entry.getKey(), entry.getValue().equals(true) ? "YES" : "NO")
-            );
+    public ResponseEntity<Map<String, Boolean>> apiPutSettings(HttpServletRequest request, @RequestBody Map<String, Boolean> globalSettings) throws HttpMessageNotReadableException {
+        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
+            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
+            if (userService.isModerator(userId)) {
+                //TODO Валидация входных данных ?
+                for (Map.Entry<String, Boolean> entry : globalSettings.entrySet()) {
+                    globalSettingService.createSetting(
+                        new GlobalSettingEntity(entry.getKey(), entry.getValue().equals(true) ? "YES" : "NO")
+                    );
+                }
+                return new ResponseEntity(getSettings(), HttpStatus.OK);
+            }
         }
-        return new ResponseEntity(getSettings().toString(), HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     private Map<String, Boolean> getSettings() {
@@ -83,13 +94,11 @@ public class ApiGeneralController {
     }
 
     @GetMapping("/statistics/my/")
-    public ResponseEntity apiGetStatMy(HttpServletRequest request) {
+    public ResponseEntity<Map<String, String>> apiGetStatMy(HttpServletRequest request) {
         if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
             Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
             Map<String, String> mapStatMy = postService.statMy(userId);
-            Gson gson = new Gson();
-
-            return new ResponseEntity(gson.toJson(mapStatMy), HttpStatus.OK);
+            return new ResponseEntity(mapStatMy, HttpStatus.OK);
         }
         return new ResponseEntity(HttpStatus.UNAUTHORIZED);
     }

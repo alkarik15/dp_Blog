@@ -23,12 +23,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.skillbox.blog.dto.AddPostDto;
 import ru.skillbox.blog.dto.CommentsDto;
-import ru.skillbox.blog.dto.Param;
+import ru.skillbox.blog.dto.OffsetLimitQueryDto;
 import ru.skillbox.blog.dto.PostByIdDto;
 import ru.skillbox.blog.dto.PostIdDto;
 import ru.skillbox.blog.dto.PostsDto;
+import ru.skillbox.blog.dto.ResultLikeDislikeDto;
 import ru.skillbox.blog.dto.ResultLoginDto;
 import ru.skillbox.blog.dto.ResultsDto;
+import ru.skillbox.blog.dto.enums.ParametrMode;
 import ru.skillbox.blog.model.enums.ModerationStatus;
 import ru.skillbox.blog.service.PostCommentService;
 import ru.skillbox.blog.service.PostService;
@@ -53,9 +55,9 @@ public class ApiPostController {
 
     @GetMapping()
     @ResponseBody
-    public String apiPost(Param param) {
+    public String apiPost(OffsetLimitQueryDto param, ParametrMode mode) {
         final Map<Integer, String> mapStatLDC = postVoteService.findStatistics();
-        PostsDto postsDto = postService.apiPost(param, mapStatLDC);
+        PostsDto postsDto = postService.apiPost(param,mode, mapStatLDC);
         Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDateTime.class,
             (JsonSerializer<LocalDateTime>)
                 (src, typeOfSrc, context) ->
@@ -65,7 +67,7 @@ public class ApiPostController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity apiPostSearch(@RequestBody Param param) {
+    public ResponseEntity<Gson> apiPostSearch(@RequestBody OffsetLimitQueryDto param) {
         PostsDto allPostSearch=null;
         if(param.getQuery().equals("")){
             //search all
@@ -82,7 +84,7 @@ public class ApiPostController {
     }
 
     @GetMapping("/{id}")
-    public String apiPostById(@PathVariable("id") Integer id) {
+    public ResponseEntity<PostByIdDto> apiPostById(@PathVariable("id") Integer id) {
         PostByIdDto postByDto = postService.getPostByIdModerationStatusActiveTime(id, (byte) 1, ModerationStatus.ACCEPTED, LocalDateTime.now());
 
         String[] stats = postVoteService.findStatPost(id).split(":");
@@ -90,24 +92,22 @@ public class ApiPostController {
         postByDto.setDislikes(Integer.parseInt(stats[2]));
         List<CommentsDto> listCommentsDto = postCommentService.findByPostId(id);
         postByDto.setComments(listCommentsDto);
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        return gson.toJson(postByDto);
+        return new ResponseEntity<>(postByDto,HttpStatus.OK);
     }
 
     @GetMapping("/byDate")
-    public String apiPostByDate(Param param) {
+    public String apiPostByDate(OffsetLimitQueryDto param) {
         return null;
     }
 
     @GetMapping("/byTag")
-    public String apiPostByTag(Param param) {
+    public String apiPostByTag(OffsetLimitQueryDto param) {
         return null;
     }
 
     @GetMapping("/moderation")
-    public String apiPostModeration(Param param) {
-        PostsDto postsDto = postService.apiPostModeration(param);
+    public String apiPostModeration(OffsetLimitQueryDto param, ModerationStatus status) {
+        PostsDto postsDto = postService.apiPostModeration(param,status);
         Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDateTime.class,
             (JsonSerializer<LocalDateTime>)
                 (src, typeOfSrc, context) ->
@@ -117,12 +117,12 @@ public class ApiPostController {
     }
 
     @GetMapping("/my")
-    public String apiPostMy(Param param) {
+    public String apiPostMy(OffsetLimitQueryDto param) {
         return null;
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public String apiPostPost(@RequestBody AddPostDto addPost) {
+    public ResponseEntity<ResultsDto> apiPostPost(@RequestBody AddPostDto addPost) {
         Map<String, String> errors = new HashMap<>();
         if (addPost.getTitle() == null || addPost.getTitle().length() == 0) {
             errors.put("title", "Заголовок не установлен");
@@ -143,40 +143,34 @@ public class ApiPostController {
             result.setResult(false);
             result.setErrors(errors);
         }
-
-        Gson gson = new Gson();
-        return gson.toJson(result);
+        return new ResponseEntity(result,HttpStatus.OK);
     }
 
     @PostMapping("/like")
-    public ResponseEntity apiPostLike(HttpServletRequest request, @RequestBody PostIdDto postIdDto) {
+    public ResponseEntity<ResultLoginDto> apiPostLike(HttpServletRequest request, @RequestBody PostIdDto postIdDto) {
         if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
             Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
             Integer postId = postIdDto.getPost_id();
             if (postId != null && postId > 0) {
                 Boolean postLike = postVoteService.findLikeByPostIdAndUserId(postId, userId);
-                ResultLoginDto resultLoginDto = new ResultLoginDto();
-                resultLoginDto.setResult(postLike);
-                Gson gson = new Gson();
-                return new ResponseEntity(gson.toJson(resultLoginDto), HttpStatus.OK);
+                ResultLikeDislikeDto resultLikeDislikeDto = new ResultLikeDislikeDto(postLike);
+                return new ResponseEntity(resultLikeDislikeDto, HttpStatus.OK);
             } else {
-                return new ResponseEntity("", HttpStatus.OK);
+                return new ResponseEntity(HttpStatus.OK);
             }
         } else {
-            return new ResponseEntity("", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
         }
     }
 
     @PostMapping("/dislike")
-    public ResponseEntity apiPostDislike(HttpServletRequest request, @RequestBody PostIdDto postIdDto) {
+    public ResponseEntity<ResultLikeDislikeDto> apiPostDislike(HttpServletRequest request, @RequestBody PostIdDto postIdDto) {
         if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
             Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
             Integer postId = postIdDto.getPost_id();
-            Boolean postLike = postVoteService.findDislikeByPostIdAndUserId(postId, userId);
-            ResultLoginDto resultLoginDto = new ResultLoginDto();
-            resultLoginDto.setResult(postLike);
-            Gson gson = new Gson();
-            return new ResponseEntity(gson.toJson(resultLoginDto), HttpStatus.OK);
+            Boolean postDisLike = postVoteService.findDislikeByPostIdAndUserId(postId, userId);
+            ResultLikeDislikeDto resultLikeDislikeDto= new ResultLikeDislikeDto(postDisLike);
+            return new ResponseEntity(resultLikeDislikeDto, HttpStatus.OK);
         } else {
             return new ResponseEntity(HttpStatus.UNAUTHORIZED);
         }
