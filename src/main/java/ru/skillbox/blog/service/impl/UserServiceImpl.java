@@ -50,4 +50,10 @@ public class UserServiceImpl implements UserService {
         }
         return resultLoginDto;
     }
+
+    @Override
+    public Boolean isModerator(final Integer userId) {
+        UserEntity userEntity=usersRepository.findAllById(userId);
+        return userEntity.getIsModerator();
+    }
 }

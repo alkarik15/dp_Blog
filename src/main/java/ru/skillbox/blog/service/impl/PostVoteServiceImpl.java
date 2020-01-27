@@ -12,6 +12,7 @@ import ru.skillbox.blog.model.PostEntity;
 import ru.skillbox.blog.model.PostVoteEntity;
 import ru.skillbox.blog.model.UserEntity;
 import ru.skillbox.blog.repository.PostVotesRepository;
+import ru.skillbox.blog.repository.PostsRepository;
 import ru.skillbox.blog.service.PostVoteService;
 
 /**
@@ -24,6 +25,9 @@ public class PostVoteServiceImpl implements PostVoteService {
 
     @Autowired
     private PostVotesRepository postVotesRepository;
+
+    @Autowired
+    private PostsRepository postsRepository;
 
     @Override
     public Map<Integer, String> findStatistics() {
@@ -49,22 +53,23 @@ public class PostVoteServiceImpl implements PostVoteService {
     @Override
     @Transactional(readOnly = false)
     public Boolean findLikeByPostIdAndUserId(final Integer postId, final Integer userId) {
-        PostEntity postEntity = new PostEntity();
-        postEntity.setId(postId);
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId(userId);
-        PostVoteEntity postLike = postVotesRepository.findAllByPostIdAndUserId(postEntity, userEntity);
-        if (postLike != null) {
-            final byte value = postLike.getValue();
-            if (value == 1) {
-                return false;
-            } else if (value == -1) {
-                deleteLike(postLike.getId());
+        PostEntity postEntity = postsRepository.findAllById(postId);
+        if (postEntity != null) {
+            PostVoteEntity postLike = postVotesRepository.findAllByPostIdAndUserId(postEntity, postEntity.getUserId());
+            if (postLike != null) {
+                final byte value = postLike.getValue();
+                if (value == 1) {
+                    return false;
+                } else if (value == -1) {
+                    deleteLike(postLike.getId());
+                }
+            } else {
+                setLike(new PostVoteEntity(postEntity.getUserId(), postEntity, LocalDateTime.now(), (byte) 1));
             }
+            return true;
         } else {
-            setLike(new PostVoteEntity(userEntity,postEntity, LocalDateTime.now(),(byte)1));
+            return false;
         }
-        return true;
     }
 
     @Override
@@ -83,7 +88,7 @@ public class PostVoteServiceImpl implements PostVoteService {
                 deleteLike(postLike.getId());
             }
         } else {
-            setLike(new PostVoteEntity(userEntity,postEntity, LocalDateTime.now(),(byte)-1));
+            setLike(new PostVoteEntity(userEntity, postEntity, LocalDateTime.now(), (byte) -1));
         }
         return true;
     }

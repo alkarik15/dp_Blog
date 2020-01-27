@@ -4,10 +4,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import ru.skillbox.blog.dto.AddPostDto;
-import ru.skillbox.blog.dto.Param;
+import ru.skillbox.blog.dto.OffsetLimitQueryDto;
 import ru.skillbox.blog.dto.PostByIdDto;
 import ru.skillbox.blog.dto.PostModeration;
 import ru.skillbox.blog.dto.PostsDto;
+import ru.skillbox.blog.dto.enums.ParametrMode;
 import ru.skillbox.blog.model.PostEntity;
 import ru.skillbox.blog.model.enums.ModerationStatus;
 
@@ -18,9 +19,9 @@ import ru.skillbox.blog.model.enums.ModerationStatus;
 public interface PostService {
     Integer countAll();
 
-    List<PostEntity> findAllWithParam(Param param);
+    List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrMode mode);
 
-    PostsDto apiPost(Param param, Map<Integer, String> mapStatLDC);
+    PostsDto apiPost(OffsetLimitQueryDto param, ParametrMode mode, Map<Integer, String> mapStatLDC);
 
     void save(PostEntity posts);
 
@@ -42,8 +43,9 @@ public interface PostService {
 
     void setModeration(PostModeration postModeration, Integer moderatorId);
 
-    PostsDto apiPostModeration(Param param);
+    PostsDto apiPostModeration(OffsetLimitQueryDto param, ModerationStatus status);
 
-    PostsDto getAllPostSearch(Param param);
-    PostsDto getAllPostSearchByQuery(Param param,String query);
+    PostsDto getAllPostSearch(OffsetLimitQueryDto param);
+
+    PostsDto getAllPostSearchByQuery(OffsetLimitQueryDto param, String query);
 }

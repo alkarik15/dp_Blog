@@ -48,4 +48,5 @@ public interface PostVotesRepository extends CrudRepository<PostVoteEntity, Inte
         "  LEFT JOIN post_comments pc ON pv.post_id = pc.post_id  " +
         "  WHERE pv.post_id=?")
     List<Object[]> statLikeDislikeCountCommentByPostId(Integer id);
+
 }

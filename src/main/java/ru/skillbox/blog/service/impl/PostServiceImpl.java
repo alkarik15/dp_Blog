@@ -15,12 +15,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.skillbox.blog.dto.AddPostDto;
-import ru.skillbox.blog.dto.Param;
+import ru.skillbox.blog.dto.OffsetLimitQueryDto;
 import ru.skillbox.blog.dto.PostByIdDto;
 import ru.skillbox.blog.dto.PostDto;
 import ru.skillbox.blog.dto.PostModeration;
 import ru.skillbox.blog.dto.PostsDto;
 import ru.skillbox.blog.dto.UserDto;
+import ru.skillbox.blog.dto.enums.ParametrMode;
 import ru.skillbox.blog.model.PostEntity;
 import ru.skillbox.blog.model.TagEntity;
 import ru.skillbox.blog.model.UserEntity;
@@ -51,24 +52,25 @@ public class PostServiceImpl implements PostService {
     private TagService tagService;
 
     @Override
-    public List<PostEntity> findAllWithParam(Param param) {
+    public List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrMode mode) {
         final int offset = param.getOffset();
         int limit = param.getLimit() < 1 ? 1 : param.getLimit();
 
         Sort.Direction sortDir = Sort.Direction.ASC;
         String sortName = "id";
-        if (param.getMode().toString().toLowerCase().equals("recent")) {
+
+        if (mode == ParametrMode.recent) {
             sortName = "time";
         }
-        if (param.getMode().toString().toLowerCase().equals("early")) {
+        if (mode == ParametrMode.early) {
             sortName = "time";
             sortDir = Sort.Direction.DESC;
         }
-        if (param.getMode().toString().toLowerCase().equals("best")) {
+        if (mode == ParametrMode.best) {
 //            TODO Сортировка по убыванию лайков
             sortDir = Sort.Direction.DESC;
         }
-        if (param.getMode().toString().toLowerCase().equals("popular")) {
+        if (mode == ParametrMode.popular) {
 //            TODO Сортировка по убыванию комментариев
             sortDir = Sort.Direction.DESC;
         }
@@ -129,10 +131,10 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = false)
-    public PostsDto apiPost(Param param, final Map<Integer, String> mapStatLDC) {
+    public PostsDto apiPost(OffsetLimitQueryDto param, ParametrMode mode, final Map<Integer, String> mapStatLDC) {
 
         final Integer count = countAll();
-        final List<PostEntity> allPosts = findAllWithParam(param);
+        final List<PostEntity> allPosts = findAllWithParam(param, mode);
 
         List<PostDto> postDtos = new ArrayList<>();
         for (PostEntity post : allPosts) {
@@ -190,14 +192,14 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = false)
-    public PostsDto apiPostModeration(Param param) {
+    public PostsDto apiPostModeration(OffsetLimitQueryDto param, ModerationStatus status) {
 
         final Integer count = countAll();
         final int offset = param.getOffset();
         int limit = param.getLimit() < 1 ? 1 : param.getLimit();
 
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "id"));
-        Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatus((byte) 1, param.getStatus(), pag);
+        Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatus((byte) 1, status, pag);
 
         PostsDto postsDto = getPostsDto(count, all, false);
         return postsDto;
@@ -221,7 +223,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostsDto getAllPostSearch(final Param param) {
+    public PostsDto getAllPostSearch(final OffsetLimitQueryDto param) {
         final Integer count = postsRepository.countAllByIsActiveAndModerationStatusAndTimeIsBefore((byte) 1,
             ModerationStatus.ACCEPTED, LocalDateTime.now());
         final int offset = param.getOffset();
@@ -234,7 +236,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostsDto getAllPostSearchByQuery(final Param param, final String query) {
+    public PostsDto getAllPostSearchByQuery(final OffsetLimitQueryDto param, final String query) {
         final Integer count = postsRepository.countAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains((byte) 1,
             ModerationStatus.ACCEPTED, LocalDateTime.now(), query);
         final int offset = param.getOffset();
