@@ -160,32 +160,31 @@ public class PostServiceImpl implements PostService {
         List<Object[]> statMy = postsRepository.statPostShowMy(id);
         HashMap<String, String> mapStatMy = new HashMap<>();
         for (Object[] stat : statMy) {
-            mapStatMy.put("Постов", stat[0].toString());
-            mapStatMy.put("Просмотров", stat[1].toString());
+            mapStatMy.put("postsCount", stat[0].toString());
+            mapStatMy.put("viewsCount", stat[1].toString());
             final String dateTime = stat[2].toString();
-            mapStatMy.put("Первая публикация", dateTime.substring(0, dateTime.lastIndexOf(":")));
+            mapStatMy.put("firstPublication", dateTime.substring(0, dateTime.lastIndexOf(":")));
         }
         statMy = postVotesRepository.statLikeDislikeMy(id);
         for (Object[] stat : statMy) {
-            mapStatMy.put("Лайков", stat[0].toString());
-            mapStatMy.put("Дизлайков", stat[1].toString());
+            mapStatMy.put("likesCount", stat[0].toString());
+            mapStatMy.put("dislikesCount", stat[1].toString());
         }
         return mapStatMy;
     }
-
     public Map<String, String> statAll() {
         List<Object[]> statMy = postsRepository.statPostShow();
         HashMap<String, String> mapStatAll = new HashMap<>();
         for (Object[] stat : statMy) {
-            mapStatAll.put("Постов", stat[0].toString());
-            mapStatAll.put("Просмотров", stat[1].toString());
+            mapStatAll.put("postsCount", stat[0].toString());
+            mapStatAll.put("viewsCount", stat[1].toString());
             final String dateTime = stat[2].toString();
-            mapStatAll.put("Первая публикация", dateTime.substring(0, dateTime.lastIndexOf(":")));
+            mapStatAll.put("firstPublication", dateTime.substring(0, dateTime.lastIndexOf(":")));
         }
         statMy = postVotesRepository.statLikeDislike();
         for (Object[] stat : statMy) {
-            mapStatAll.put("Лайков", stat[0].toString());
-            mapStatAll.put("Дизлайков", stat[1].toString());
+            mapStatAll.put("likesCount", stat[0].toString());
+            mapStatAll.put("dislikesCount", stat[1].toString());
         }
         return mapStatAll;
     }

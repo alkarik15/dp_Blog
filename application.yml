@@ -21,12 +21,13 @@ global:
     - code: MULTIUSER_MODE
       name: Многопользовательский режим
       value: 'NO'
-    - code: POST_PREMODERATIO
+    - code: POST_PREMODERATION
       name: Премодерация постов
       value: 'NO'
     - code: STATISTICS_IS_PUBLIC
       name: Показывать всем статистику блога
       value: 'YES'
+
 
 blog:
   header:

@@ -1,5 +1,7 @@
 package ru.skillbox.blog.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * @author alkarik
  * @link http://alkarik
@@ -7,6 +9,7 @@ package ru.skillbox.blog.dto;
 public class ResultLoginDto {
     private Boolean result;
 
+    @JsonProperty("user")
     private UserLoginDto user;
 
     public Boolean getResult() {

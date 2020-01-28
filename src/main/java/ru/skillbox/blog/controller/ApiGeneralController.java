@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import com.google.gson.Gson;
@@ -22,9 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skillbox.blog.component.HeaderProperties;
 import ru.skillbox.blog.dto.PostModeration;
+import ru.skillbox.blog.dto.TagDto;
 import ru.skillbox.blog.model.GlobalSettingEntity;
 import ru.skillbox.blog.service.GlobalSettingService;
 import ru.skillbox.blog.service.PostService;
+import ru.skillbox.blog.service.TagService;
 import ru.skillbox.blog.service.UserService;
 
 /**
@@ -46,18 +49,21 @@ public class ApiGeneralController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private TagService tagService;
+
     @Value("${upload.path}")
     private String uploadPath;
 
     @Value("${upload.dir}")
     private String uploadDir;
 
-    @GetMapping("/init/")
+    @GetMapping("/init")
     public ResponseEntity<Map<String, String>> initHeader() {
         return new ResponseEntity(headerProperties.getHeader(), HttpStatus.OK);
     }
 
-    @GetMapping("/settings/")
+    @GetMapping("/settings")
     public ResponseEntity<Map<String, Boolean>> apiGetSettings(HttpServletRequest request) {
         if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
             Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
@@ -68,7 +74,7 @@ public class ApiGeneralController {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
-    @PutMapping(value = "/settings/")
+    @PutMapping(value = "/settings")
     public ResponseEntity<Map<String, Boolean>> apiPutSettings(HttpServletRequest request, @RequestBody Map<String, Boolean> globalSettings) throws HttpMessageNotReadableException {
         if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
             Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
@@ -93,7 +99,7 @@ public class ApiGeneralController {
         return glSett;
     }
 
-    @GetMapping("/statistics/my/")
+    @GetMapping("/statistics/my")
     public ResponseEntity<Map<String, String>> apiGetStatMy(HttpServletRequest request) {
         if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
             Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
@@ -103,7 +109,7 @@ public class ApiGeneralController {
         return new ResponseEntity(HttpStatus.UNAUTHORIZED);
     }
 
-    @GetMapping("/statistics/all/")
+    @GetMapping("/statistics/all")
     public ResponseEntity apiGetStatAll(HttpServletRequest request) {
         Map<String, Boolean> sett = getSettings();
         Boolean isPublic = sett.get("STATISTICS_IS_PUBLIC");
@@ -119,7 +125,7 @@ public class ApiGeneralController {
         return new ResponseEntity(HttpStatus.UNAUTHORIZED);
     }
 
-    @PostMapping("/image/")
+    @PostMapping("/image")
     public String apiPostImage(@RequestParam("image") MultipartFile uploadFile) throws IOException {
         if (uploadFile.isEmpty()) {
             return "please select a file!";
@@ -139,7 +145,7 @@ public class ApiGeneralController {
         return dirPath + fileName;
     }
 
-    @PostMapping("/moderation/")
+    @PostMapping("/moderation")
     public ResponseEntity apiPostImage(HttpServletRequest request, @RequestBody PostModeration postModeration) {
         if (request.getSession().getAttribute("user") != null
             && request.getSession().getAttribute("user").toString().length() > 0) {
@@ -148,5 +154,11 @@ public class ApiGeneralController {
             return new ResponseEntity(HttpStatus.OK);
         }
         return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+    }
+
+    @GetMapping("/tag")
+    public ResponseEntity<List<TagDto>> apiGetTag(@RequestParam(value = "query",defaultValue = "") String query) {
+        final List<TagDto> tagDtos = tagService.GetAllTags(query);
+        return new ResponseEntity(tagDtos,HttpStatus.OK);
     }
 }
