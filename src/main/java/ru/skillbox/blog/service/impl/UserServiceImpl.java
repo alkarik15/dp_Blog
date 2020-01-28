@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultLoginDto findUserByEmailAndPassword(LoginDto loginDto) {
-        final UserEntity user = usersRepository.findByEmailAndPassword(loginDto.getEmail(), loginDto.getPassword());
+        final UserEntity user = usersRepository.findByEmailAndPassword(loginDto.getE_mail(), loginDto.getPassword());
         ResultLoginDto resultLoginDto = new ResultLoginDto();
         if (user != null) {
             UserLoginDto userLoginDto = modelMapper.map(user, UserLoginDto.class);
