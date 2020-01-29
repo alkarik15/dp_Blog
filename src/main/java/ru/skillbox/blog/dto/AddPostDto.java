@@ -1,14 +1,15 @@
 package ru.skillbox.blog.dto;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * @author alkarik
  * @link http://alkarik
  */
 public class AddPostDto {
-    private LocalDateTime time;
+    private String time;
+
+    private LocalDateTime ldt;
 
     private Boolean active;
 
@@ -16,18 +17,23 @@ public class AddPostDto {
 
     private String Text;
 
-    private String tags;
+    private String[] tags;
 
-    public LocalDateTime getTime() {
+    public LocalDateTime getLdt() {
+        return ldt;
+    }
+
+    public void setLdt(final LocalDateTime ldt) {
+        this.ldt = ldt;
+    }
+
+    public String getTime() {
         return time;
     }
 
-    public void setTime(String time) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime dateTime = LocalDateTime.parse(time, formatter);
-        this.time = dateTime;
+    public void setTime(final String time) {
+        this.time = time;
     }
-
 
     public Boolean getActive() {
         return active;
@@ -53,11 +59,15 @@ public class AddPostDto {
         Text = text;
     }
 
-    public String getTags() {
+    public void setTime(final LocalDateTime time) {
+        this.ldt = time;
+    }
+
+    public String[] getTags() {
         return tags;
     }
 
-    public void setTags(final String tags) {
+    public void setTags(final String[] tags) {
         this.tags = tags;
     }
 }

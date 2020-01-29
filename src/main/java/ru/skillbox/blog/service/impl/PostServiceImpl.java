@@ -28,6 +28,7 @@ import ru.skillbox.blog.model.UserEntity;
 import ru.skillbox.blog.model.enums.ModerationStatus;
 import ru.skillbox.blog.repository.PostVotesRepository;
 import ru.skillbox.blog.repository.PostsRepository;
+import ru.skillbox.blog.repository.UsersRepository;
 import ru.skillbox.blog.service.PostService;
 import ru.skillbox.blog.service.TagService;
 
@@ -50,6 +51,9 @@ public class PostServiceImpl implements PostService {
 
     @Autowired
     private TagService tagService;
+
+    @Autowired
+    private UsersRepository usersRepository;
 
     @Override
     public List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrMode mode) {
@@ -78,7 +82,7 @@ public class PostServiceImpl implements PostService {
 
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(sortDir, sortName));
         final Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBefore(
-            (byte) 1, ModerationStatus.ACCEPTED, LocalDateTime.now(), pag);
+            true, ModerationStatus.ACCEPTED, LocalDateTime.now(), pag);
         List<PostEntity> posts = new ArrayList<>();
         all.forEach(postEntity -> posts.add(postEntity));
         return posts;
@@ -98,7 +102,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostByIdDto getPostByIdModerationStatusActiveTime(
         final Integer id,
-        final Byte isActive,
+        final Boolean isActive,
         final ModerationStatus moderationStatus,
         final LocalDateTime ldt) {
 
@@ -116,14 +120,19 @@ public class PostServiceImpl implements PostService {
     public void createPostFromDto(
         final AddPostDto postDto,
         final ModerationStatus modStatus,
-        final LocalDateTime ldt) {
+        final LocalDateTime ldt,
+        final Integer userId) {
 
         PostEntity post = modelMapper.map(postDto, PostEntity.class);
+        post.setIsActive(postDto.getActive());
         post.setModerationStatus(modStatus);
+        post.setTime(postDto.getLdt());
         if (post.getTime().isBefore(ldt)) {
             post.setTime(ldt);
         }
-
+        post.setTags(null);
+        UserEntity userEntity = usersRepository.findAllById(userId);
+        post.setUserId(userEntity);
         final Set<TagEntity> tagEntities = tagService.collectTags(postDto.getTags());
         tagEntities.forEach(tagEntity -> post.addTag(tagEntity));
         save(post);
@@ -140,14 +149,23 @@ public class PostServiceImpl implements PostService {
         for (PostEntity post : allPosts) {
             PostDto postDto = modelMapper.map(post, PostDto.class);
             UserDto userDto = modelMapper.map(post.getUserId(), UserDto.class);
+
+
+            final Set<TagEntity> tags = post.getTags();
+            String[] tagsString = new String[tags.size()];
+            int i = 0;
+            for (TagEntity tag : tags) {
+                tagsString[i++] = tag.getName();
+            }
             postDto.setAnnonce(Jsoup.parse(postDto.getText()).text());
-            postDto.setText(null);
+//            postDto.setText(null);
             postDto.setUser(userDto);
+            postDto.setTags(tagsString);
             if (mapStatLDC.containsKey(postDto.getId())) {
                 final String[] splitLikes = mapStatLDC.get(postDto.getId()).split(":");
-                postDto.setLikes(Integer.parseInt(splitLikes[1]));
-                postDto.setDislikes(Integer.parseInt(splitLikes[2]));
-                postDto.setComments(Integer.parseInt(splitLikes[3]));
+                postDto.setLikeCount(Integer.parseInt(splitLikes[1]));
+                postDto.setDislikeCount(Integer.parseInt(splitLikes[2]));
+                postDto.setCommentCount(Integer.parseInt(splitLikes[3]));
             }
             postDtos.add(postDto);
         }
@@ -172,6 +190,7 @@ public class PostServiceImpl implements PostService {
         }
         return mapStatMy;
     }
+
     public Map<String, String> statAll() {
         List<Object[]> statMy = postsRepository.statPostShow();
         HashMap<String, String> mapStatAll = new HashMap<>();
@@ -198,7 +217,7 @@ public class PostServiceImpl implements PostService {
         int limit = param.getLimit() < 1 ? 1 : param.getLimit();
 
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "id"));
-        Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatus((byte) 1, status, pag);
+        Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatus(true, status, pag);
 
         PostsDto postsDto = getPostsDto(count, all, false);
         return postsDto;
@@ -216,33 +235,32 @@ public class PostServiceImpl implements PostService {
             ms = ModerationStatus.ACCEPTED;
         }
         post.setModerationStatus(ms);
-        UserEntity moderator = new UserEntity();
-        moderator.setId(moderatorId);
+        UserEntity moderator = usersRepository.findAllById(moderatorId);
         post.setModeratorId(moderator);
     }
 
     @Override
     public PostsDto getAllPostSearch(final OffsetLimitQueryDto param) {
-        final Integer count = postsRepository.countAllByIsActiveAndModerationStatusAndTimeIsBefore((byte) 1,
+        final Integer count = postsRepository.countAllByIsActiveAndModerationStatusAndTimeIsBefore(true,
             ModerationStatus.ACCEPTED, LocalDateTime.now());
         final int offset = param.getOffset();
         int limit = param.getLimit() < 1 ? 1 : param.getLimit();
 
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "time"));
         final Page<PostEntity> allPosts = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBefore(
-            (byte) 1, ModerationStatus.ACCEPTED, LocalDateTime.now(), pag);
+            true, ModerationStatus.ACCEPTED, LocalDateTime.now(), pag);
         return getPostsDto(count, allPosts, true);
     }
 
     @Override
     public PostsDto getAllPostSearchByQuery(final OffsetLimitQueryDto param, final String query) {
-        final Integer count = postsRepository.countAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains((byte) 1,
+        final Integer count = postsRepository.countAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains(true,
             ModerationStatus.ACCEPTED, LocalDateTime.now(), query);
         final int offset = param.getOffset();
         int limit = param.getLimit() < 1 ? 1 : param.getLimit();
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "time"));
         final Page<PostEntity> allPosts = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains(
-            (byte) 1, ModerationStatus.ACCEPTED, LocalDateTime.now(), query, pag);
+            true, ModerationStatus.ACCEPTED, LocalDateTime.now(), query, pag);
         return getPostsDto(count, allPosts, true);
     }
 
@@ -258,9 +276,9 @@ public class PostServiceImpl implements PostService {
             if (needStat) {
                 List<Object[]> statLD = postVotesRepository.statLikeDislikeCountCommentByPostId(post.getId());
                 for (Object[] stat : statLD) {
-                    postDto.setLikes(Integer.parseInt(stat[0].toString()));
-                    postDto.setDislikes(Integer.parseInt(stat[1].toString()));
-                    postDto.setComments(Integer.parseInt(stat[2].toString()));
+                    postDto.setLikeCount(Integer.parseInt(stat[0].toString()));
+                    postDto.setDislikeCount(Integer.parseInt(stat[1].toString()));
+                    postDto.setCommentCount(Integer.parseInt(stat[2].toString()));
                 }
             } else {
                 postDto.setViewCount(null);

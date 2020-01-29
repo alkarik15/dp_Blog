@@ -57,22 +57,22 @@ public class ApiPostController {
     @ResponseBody
     public String apiPost(OffsetLimitQueryDto param, ParametrMode mode) {
         final Map<Integer, String> mapStatLDC = postVoteService.findStatistics();
-        PostsDto postsDto = postService.apiPost(param,mode, mapStatLDC);
+        PostsDto postsDto = postService.apiPost(param, mode, mapStatLDC);
         Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDateTime.class,
             (JsonSerializer<LocalDateTime>)
                 (src, typeOfSrc, context) ->
-                    src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))))
+                    src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))))
             .create();
         return gson.toJson(postsDto);
     }
 
     @GetMapping("/search")
     public ResponseEntity<Gson> apiPostSearch(@RequestBody OffsetLimitQueryDto param) {
-        PostsDto allPostSearch=null;
-        if(param.getQuery().equals("")){
+        PostsDto allPostSearch = null;
+        if (param.getQuery().equals("")) {
             //search all
             allPostSearch = postService.getAllPostSearch(param);
-        }else{
+        } else {
             //search by query
             allPostSearch = postService.getAllPostSearchByQuery(param, param.getQuery());
         }
@@ -80,19 +80,19 @@ public class ApiPostController {
             (JsonSerializer<LocalDateTime>)
                 (src, typeOfSrc, context) ->
                     src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")))).create();
-        return new ResponseEntity(gson.toJson(allPostSearch),HttpStatus.OK);
+        return new ResponseEntity(gson.toJson(allPostSearch), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PostByIdDto> apiPostById(@PathVariable("id") Integer id) {
-        PostByIdDto postByDto = postService.getPostByIdModerationStatusActiveTime(id, (byte) 1, ModerationStatus.ACCEPTED, LocalDateTime.now());
+        PostByIdDto postByDto = postService.getPostByIdModerationStatusActiveTime(id, true, ModerationStatus.ACCEPTED, LocalDateTime.now());
 
         String[] stats = postVoteService.findStatPost(id).split(":");
         postByDto.setLikes(Integer.parseInt(stats[1]));
         postByDto.setDislikes(Integer.parseInt(stats[2]));
         List<CommentsDto> listCommentsDto = postCommentService.findByPostId(id);
         postByDto.setComments(listCommentsDto);
-        return new ResponseEntity<>(postByDto,HttpStatus.OK);
+        return new ResponseEntity<>(postByDto, HttpStatus.OK);
     }
 
     @GetMapping("/byDate")
@@ -107,7 +107,7 @@ public class ApiPostController {
 
     @GetMapping("/moderation")
     public String apiPostModeration(OffsetLimitQueryDto param, ModerationStatus status) {
-        PostsDto postsDto = postService.apiPostModeration(param,status);
+        PostsDto postsDto = postService.apiPostModeration(param, status);
         Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDateTime.class,
             (JsonSerializer<LocalDateTime>)
                 (src, typeOfSrc, context) ->
@@ -122,28 +122,35 @@ public class ApiPostController {
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResultsDto> apiPostPost(@RequestBody AddPostDto addPost) {
+    public ResponseEntity<ResultsDto> apiPostPost(HttpServletRequest request, @RequestBody AddPostDto addPost) {
         Map<String, String> errors = new HashMap<>();
-        if (addPost.getTitle() == null || addPost.getTitle().length() == 0) {
-            errors.put("title", "Заголовок не установлен");
-        } else if (addPost.getTitle().length() <= 10) {
-            errors.put("title", "Заголовок слишком короткий");
-        }
-        if (addPost.getText() == null || addPost.getText().length() == 0) {
-            errors.put("text", "Текст публикации не установлен");
-        } else if (addPost.getText().length() <= 500) {
-            errors.put("text", "Текст публикации слишком короткий");
+        Integer userId = 0;
+        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
+            userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
+            addPost.setLdt(LocalDateTime.parse(addPost.getTime()));
+            if (addPost.getTitle() == null || addPost.getTitle().length() == 0) {
+                errors.put("title", "Заголовок не установлен");
+            } else if (addPost.getTitle().length() <= 10) {
+                errors.put("title", "Заголовок слишком короткий");
+            }
+            if (addPost.getText() == null || addPost.getText().length() == 0) {
+                errors.put("text", "Текст публикации не установлен");
+            } else if (addPost.getText().length() <= 500) {
+                errors.put("text", "Текст публикации слишком короткий");
+            }
+        } else {
+            errors.put("text", "Пользователь не авторизован");
         }
 
         ResultsDto result = new ResultsDto();
         if (errors.size() == 0) {
             result.setResult(true);
-            postService.createPostFromDto(addPost, ModerationStatus.NEW, LocalDateTime.now());
+            postService.createPostFromDto(addPost, ModerationStatus.NEW, LocalDateTime.now(), userId);
         } else {
             result.setResult(false);
             result.setErrors(errors);
         }
-        return new ResponseEntity(result,HttpStatus.OK);
+        return new ResponseEntity(result, HttpStatus.OK);
     }
 
     @PostMapping("/like")
@@ -152,7 +159,7 @@ public class ApiPostController {
             Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
             Integer postId = postIdDto.getPost_id();
             if (postId != null && postId > 0) {
-                Boolean postLike = postVoteService.findLikeByPostIdAndUserId(postId, userId);
+                Boolean postLike = postVoteService.setLikeByPostIdAndUserId(postId, userId);
                 ResultLikeDislikeDto resultLikeDislikeDto = new ResultLikeDislikeDto(postLike);
                 return new ResponseEntity(resultLikeDislikeDto, HttpStatus.OK);
             } else {
@@ -164,12 +171,13 @@ public class ApiPostController {
     }
 
     @PostMapping("/dislike")
-    public ResponseEntity<ResultLikeDislikeDto> apiPostDislike(HttpServletRequest request, @RequestBody PostIdDto postIdDto) {
+    public ResponseEntity<ResultLikeDislikeDto> apiPostDislike(HttpServletRequest request, @RequestBody PostIdDto
+        postIdDto) {
         if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
             Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
             Integer postId = postIdDto.getPost_id();
             Boolean postDisLike = postVoteService.findDislikeByPostIdAndUserId(postId, userId);
-            ResultLikeDislikeDto resultLikeDislikeDto= new ResultLikeDislikeDto(postDisLike);
+            ResultLikeDislikeDto resultLikeDislikeDto = new ResultLikeDislikeDto(postDisLike);
             return new ResponseEntity(resultLikeDislikeDto, HttpStatus.OK);
         } else {
             return new ResponseEntity(HttpStatus.UNAUTHORIZED);

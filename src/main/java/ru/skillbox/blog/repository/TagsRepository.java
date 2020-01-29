@@ -14,10 +14,11 @@ import ru.skillbox.blog.model.TagEntity;
 public interface TagsRepository extends JpaRepository<TagEntity,Integer> {
     TagEntity findTagsByName(String tagName);
 
-    @Query(nativeQuery = true, value = "SELECT t1.name, COUNT(t.tag_id) as cnt " +
+    @Query(nativeQuery = true, value = "SELECT t1.id,t1.name, COUNT(t.tag_id) as cnt " +
         "FROM dp_blog.tag2post t " +
         "LEFT JOIN tags t1 ON t.tag_id = t1.id " +
         "GROUP BY t.tag_id ORDER BY cnt DESC")
     List<Object[]> tagsCountInPost();
+
 
 }

@@ -8,14 +8,16 @@ import java.util.List;
  */
 public class PostsDto {
     private Integer count;
+
     private List<PostDto> posts;
 
-    public Integer getCout() {
+
+    public Integer getCount() {
         return count;
     }
 
-    public void setCout(final Integer cout) {
-        this.count = cout;
+    public void setCount(final Integer count) {
+        this.count = count;
     }
 
     public List<PostDto> getPosts() {
@@ -26,17 +28,10 @@ public class PostsDto {
         this.posts = posts;
     }
 
-    public PostsDto(final int cout, final List<PostDto> posts) {
-        this.count = cout;
+    public PostsDto(final int count, final List<PostDto> posts) {
+        this.count = count;
         this.posts = posts;
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("PostsDto{");
-        sb.append("cout=").append(count);
-        sb.append(", posts=").append(posts);
-        sb.append('}');
-        return sb.toString();
-    }
+
 }

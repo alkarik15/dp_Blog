@@ -16,15 +16,15 @@ import ru.skillbox.blog.model.enums.ModerationStatus;
  */
 @Repository
 public interface PostsRepository extends JpaRepository<PostEntity, Integer> {
-    PostEntity findByIdAndIsActiveAndModerationStatusAndTimeIsBefore(Integer id, Byte isActive, ModerationStatus moderationStatus, LocalDateTime ldt);
+    PostEntity findByIdAndIsActiveAndModerationStatusAndTimeIsBefore(Integer id, Boolean isActive, ModerationStatus moderationStatus, LocalDateTime ldt);
 
     long count();
 
-    Page<PostEntity> findAllByIsActiveAndModerationStatusAndTimeIsBefore(Byte isActive, ModerationStatus moderationStatus, LocalDateTime ldt, Pageable pageable);
+    Page<PostEntity> findAllByIsActiveAndModerationStatusAndTimeIsBefore(Boolean isActive, ModerationStatus moderationStatus, LocalDateTime ldt, Pageable pageable);
 
-    Page<PostEntity> findAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains(Byte isActive, ModerationStatus moderationStatus, LocalDateTime ldt, String query, Pageable pageable);
+    Page<PostEntity> findAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains(Boolean isActive, ModerationStatus moderationStatus, LocalDateTime ldt, String query, Pageable pageable);
 
-    Page<PostEntity> findAllByIsActiveAndModerationStatus(Byte isActive, ModerationStatus moderationStatus, Pageable pageable);
+    Page<PostEntity> findAllByIsActiveAndModerationStatus(Boolean isActive, ModerationStatus moderationStatus, Pageable pageable);
 
     @Query(nativeQuery = true, value = "SELECT COUNT(DISTINCT p.id) as postCount, SUM(p.view_count) as showCount, MIN(p.time) as firstPubl " +
         "FROM posts p WHERE p.user_id=?")
@@ -34,9 +34,9 @@ public interface PostsRepository extends JpaRepository<PostEntity, Integer> {
         "FROM posts p")
     List<Object[]> statPostShow();
 
-    Integer countAllByIsActiveAndModerationStatusAndTimeIsBefore(Byte isActive, ModerationStatus moderationStatus, LocalDateTime ldt);
+    Integer countAllByIsActiveAndModerationStatusAndTimeIsBefore(Boolean isActive, ModerationStatus moderationStatus, LocalDateTime ldt);
 
-    Integer countAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains(Byte isActive, ModerationStatus moderationStatus, LocalDateTime ldt, String query);
+    Integer countAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains(Boolean isActive, ModerationStatus moderationStatus, LocalDateTime ldt, String query);
 
     PostEntity findAllById(Integer id);
 //    @Query(nativeQuery = true, value = "SELECT p.id,p.time,p.user_id,p.title,p.text, p.view_count as viewCount, SUM(IF(pv.value=1,1,0)) AS likeCount, " +
