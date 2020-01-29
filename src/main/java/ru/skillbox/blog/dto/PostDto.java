@@ -1,6 +1,7 @@
 package ru.skillbox.blog.dto;
 
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author alkarik
@@ -20,19 +21,33 @@ public class PostDto {
 
     private String annonce;
 
+    @JsonProperty("viewCount")
     private Integer viewCount;
 
-    private Integer likes;
+    @JsonProperty("likeCount")
+    private Integer likeCount;
 
-    private Integer dislikes;
+    @JsonProperty("dislikeCount")
+    private Integer dislikeCount;
 
-    private Integer comments;
+    @JsonProperty("commentCount")
+    private Integer commentCount;
+
+    private String[] tags;
 
     public PostDto() {
     }
 
     public PostDto(final String title) {
         this.title = title;
+    }
+
+    public String[] getTags() {
+        return tags;
+    }
+
+    public void setTags(final String[] tags) {
+        this.tags = tags;
     }
 
     public String getAnnonce() {
@@ -43,28 +58,28 @@ public class PostDto {
         this.annonce = annonce;
     }
 
-    public Integer getLikes() {
-        return likes;
+    public Integer getLikeCount() {
+        return likeCount;
     }
 
-    public void setLikes(final Integer likes) {
-        this.likes = likes;
+    public void setLikeCount(final Integer likeCount) {
+        this.likeCount = likeCount;
     }
 
-    public Integer getDislikes() {
-        return dislikes;
+    public Integer getDislikeCount() {
+        return dislikeCount;
     }
 
-    public void setDislikes(final Integer dislikes) {
-        this.dislikes = dislikes;
+    public void setDislikeCount(final Integer dislikeCount) {
+        this.dislikeCount = dislikeCount;
     }
 
-    public Integer getComments() {
-        return comments;
+    public Integer getCommentCount() {
+        return commentCount;
     }
 
-    public void setComments(final Integer comments) {
-        this.comments = comments;
+    public void setCommentCount(final Integer commentCount) {
+        this.commentCount = commentCount;
     }
 
     public int getId() {

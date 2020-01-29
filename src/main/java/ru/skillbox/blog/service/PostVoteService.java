@@ -12,7 +12,7 @@ public interface PostVoteService {
 
     String findStatPost(Integer id);
 
-    Boolean findLikeByPostIdAndUserId(Integer postId, Integer userId);
+    Boolean setLikeByPostIdAndUserId(Integer postId, Integer userId);
 
     Boolean findDislikeByPostIdAndUserId(Integer postId, Integer userId);
 

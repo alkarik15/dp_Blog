@@ -4,7 +4,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import com.google.gson.Gson;
@@ -23,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skillbox.blog.component.HeaderProperties;
 import ru.skillbox.blog.dto.PostModeration;
-import ru.skillbox.blog.dto.TagDto;
+import ru.skillbox.blog.dto.TagsDto;
 import ru.skillbox.blog.model.GlobalSettingEntity;
 import ru.skillbox.blog.service.GlobalSettingService;
 import ru.skillbox.blog.service.PostService;
@@ -157,8 +156,9 @@ public class ApiGeneralController {
     }
 
     @GetMapping("/tag")
-    public ResponseEntity<List<TagDto>> apiGetTag(@RequestParam(value = "query",defaultValue = "") String query) {
-        final List<TagDto> tagDtos = tagService.GetAllTags(query);
-        return new ResponseEntity(tagDtos,HttpStatus.OK);
+    public ResponseEntity apiGetTag(@RequestParam(value = "query", defaultValue = "") String query) {
+        TagsDto tagsDto = new TagsDto(tagService.GetAllTags(query));
+        Gson gson = new Gson();
+        return new ResponseEntity(gson.toJson(tagsDto), HttpStatus.OK);
     }
 }

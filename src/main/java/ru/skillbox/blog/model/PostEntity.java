@@ -31,7 +31,7 @@ public class PostEntity {
     private int id;
 
     @Column(nullable = false)
-    private byte isActive;
+    private Boolean isActive;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -65,6 +65,9 @@ public class PostEntity {
     )
     private Set<TagEntity> tags = new HashSet<>();
 
+    public PostEntity() {
+    }
+
     public void addTag(TagEntity tag) {
         tags.add(tag);
     }
@@ -73,9 +76,17 @@ public class PostEntity {
         tags.remove(tag);
     }
 
-    public PostEntity() {
+    public Set<TagEntity> getTags() {
+        return tags;
     }
 
+    public void setTags(final Set<TagEntity> tags) {
+        if(tags==null){
+            this.tags.clear();
+        }else {
+            this.tags = tags;
+        }
+    }
 
     public int getId() {
         return id;
@@ -85,11 +96,11 @@ public class PostEntity {
         this.id = id;
     }
 
-    public byte getIsActive() {
+    public Boolean getIsActive() {
         return isActive;
     }
 
-    public void setIsActive(final byte isActive) {
+    public void setIsActive(final Boolean isActive) {
         this.isActive = isActive;
     }
 

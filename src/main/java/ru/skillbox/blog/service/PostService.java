@@ -27,14 +27,15 @@ public interface PostService {
 
     PostByIdDto getPostByIdModerationStatusActiveTime(
         Integer id,
-        Byte isActive,
+        Boolean isActive,
         ModerationStatus moderationStatus,
         LocalDateTime ldt);
 
     void createPostFromDto(
         final AddPostDto postDto,
         final ModerationStatus modStatus,
-        final LocalDateTime ldt);
+        final LocalDateTime ldt,
+        final Integer userId);
 
 
     Map<String, String> statMy(Integer id);

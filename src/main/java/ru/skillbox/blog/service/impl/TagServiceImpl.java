@@ -34,10 +34,9 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public Set<TagEntity> collectTags(String tags) {
+    public Set<TagEntity> collectTags(String[] tags) {
         Set<TagEntity> setTags = new HashSet<>();
-        final String[] splitTags = tags.split(",");
-        for (String splitTag : splitTags) {
+        for (String splitTag : tags) {
             TagEntity ta = saveOrGetTag(splitTag);
             setTags.add(ta);
         }
@@ -48,21 +47,22 @@ public class TagServiceImpl implements TagService {
     @Transactional(readOnly = false)
     public List<TagDto> GetAllTags(final String tagName) {
         final List<Object[]> tags = tagsRepository.tagsCountInPost();
-        Boolean fistRow=true;
-        Integer maxCount=1;
+        Boolean fistRow = true;
+        Integer maxCount = 1;
         List<TagDto> tagsDto = new ArrayList<>();
         for (Object[] tag : tags) {
-            if (fistRow){
-                fistRow=false;
-                maxCount=Integer.parseInt(tag[1].toString());
+            if (fistRow) {
+                fistRow = false;
+                maxCount = Integer.parseInt(tag[2].toString());
             }
-            Float normWeight=(float)Integer.parseInt(tag[1].toString())/maxCount;
-            final String nameTag = tag[0].toString();
-            if(tagName.equals("")) {
-                tagsDto.add(new TagDto(nameTag, normWeight));
-            }else{
-                if(nameTag.startsWith(tagName)){
-                    tagsDto.add(new TagDto(nameTag, normWeight));
+            Float normWeight = (float) Integer.parseInt(tag[2].toString()) / maxCount;
+            final String nameTag = tag[1].toString();
+            final Integer tagId = Integer.parseInt(tag[0].toString());
+            if (tagName.equals("")) {
+                tagsDto.add(new TagDto(tagId, nameTag, normWeight));
+            } else {
+                if (nameTag.startsWith(tagName)) {
+                    tagsDto.add(new TagDto(tagId, nameTag, normWeight));
                     break;
                 }
             }

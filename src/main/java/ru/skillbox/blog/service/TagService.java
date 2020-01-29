@@ -11,6 +11,8 @@ import ru.skillbox.blog.model.TagEntity;
  */
 public interface TagService {
     TagEntity saveOrGetTag(String tagName);
-    Set<TagEntity> collectTags(String tags);
+
+    Set<TagEntity> collectTags(String[] tags);
+
     List<TagDto> GetAllTags(String tagName);
 }
