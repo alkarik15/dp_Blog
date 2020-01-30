@@ -2,13 +2,8 @@ package ru.skillbox.blog.controller;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,7 +27,6 @@ import ru.skillbox.blog.dto.ResultsDto;
 import ru.skillbox.blog.dto.enums.ParametrMode;
 import ru.skillbox.blog.dto.enums.ParametrStatus;
 import ru.skillbox.blog.model.enums.ModerationStatus;
-import ru.skillbox.blog.service.PostCommentService;
 import ru.skillbox.blog.service.PostService;
 import ru.skillbox.blog.service.PostVoteService;
 
@@ -50,25 +44,19 @@ public class ApiPostController {
     @Autowired
     private PostVoteService postVoteService;
 
-    @Autowired
-    private PostCommentService postCommentService;
-
     @GetMapping()
     @ResponseBody
-    public String apiPost(OffsetLimitQueryDto param, ParametrMode mode) {
+    public ResponseEntity<PostsDto> apiPost(OffsetLimitQueryDto param, @RequestParam(name = "mode") String mode) {
         final Map<Integer, String> mapStatLDC = postVoteService.findStatistics(null);
-        PostsDto postsDto = postService.apiPost(param, mode, mapStatLDC);
-        Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDateTime.class,
-            (JsonSerializer<LocalDateTime>)
-                (src, typeOfSrc, context) ->
-                    src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))))
-            .create();
-        return gson.toJson(postsDto);
+        ParametrMode incomeMode = ParametrMode.valueOf(mode);
+        PostsDto postsDto = postService.apiPost(param, incomeMode, mapStatLDC);
+
+        return new ResponseEntity<>(postsDto, HttpStatus.OK);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Gson> apiPostSearch(@RequestBody OffsetLimitQueryDto param) {
-        PostsDto allPostSearch = null;
+    public ResponseEntity<PostsDto> apiPostSearch(@RequestBody OffsetLimitQueryDto param) {
+        PostsDto allPostSearch;
         if (param.getQuery().equals("")) {
             //search all
             allPostSearch = postService.getAllPostSearch(param);
@@ -76,11 +64,7 @@ public class ApiPostController {
             //search by query
             allPostSearch = postService.getAllPostSearchByQuery(param, param.getQuery());
         }
-        Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDateTime.class,
-            (JsonSerializer<LocalDateTime>)
-                (src, typeOfSrc, context) ->
-                    src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")))).create();
-        return new ResponseEntity(gson.toJson(allPostSearch), HttpStatus.OK);
+        return new ResponseEntity(allPostSearch, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -111,11 +95,12 @@ public class ApiPostController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<PostsDto> apiPostMy(HttpServletRequest request, OffsetLimitQueryDto param, @RequestParam("status") ParametrStatus status) {
+    public ResponseEntity<PostsDto> apiPostMy(HttpServletRequest request, OffsetLimitQueryDto param, @RequestParam("status") String status) {
         if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
             Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
             final Map<Integer, String> mapStatLDC = postVoteService.findStatistics(userId);
-            PostsDto postsDto = postService.apiPostMy(param, status, mapStatLDC);
+            ParametrStatus incomeStatus = ParametrStatus.valueOf(status);
+            PostsDto postsDto = postService.apiPost(param, incomeStatus, mapStatLDC);
             return new ResponseEntity<>(postsDto, HttpStatus.OK);
         } else {
             return new ResponseEntity(HttpStatus.UNAUTHORIZED);

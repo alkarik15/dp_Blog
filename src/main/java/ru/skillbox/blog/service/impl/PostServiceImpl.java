@@ -67,29 +67,28 @@ public class PostServiceImpl implements PostService {
     private PostCommentService postCommentService;
 
     @Override
-    public List<PostEntity> findAllWithParamMode(OffsetLimitQueryDto param, ParametrMode mode) {
+    public List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrMode mode) {
         final int offset = param.getOffset();
         int limit = param.getLimit() < 1 ? 10 : param.getLimit();
 
         Sort.Direction sortDir = Sort.Direction.ASC;
         String sortName = "id";
 
-        if (mode == ParametrMode.recent) {
+        if (mode == ParametrMode.RECENT) {
             sortName = "time";
         }
-        if (mode == ParametrMode.early) {
+        if (mode == ParametrMode.EARLY) {
             sortName = "time";
             sortDir = Sort.Direction.DESC;
         }
-        if (mode == ParametrMode.best) {
+        if (mode == ParametrMode.BEST) {
 //            TODO Сортировка по убыванию лайков
             sortDir = Sort.Direction.DESC;
         }
-        if (mode == ParametrMode.popular) {
+        if (mode == ParametrMode.POPULAR) {
 //            TODO Сортировка по убыванию комментариев
             sortDir = Sort.Direction.DESC;
         }
-
 
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(sortDir, sortName));
         final Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBefore(
@@ -100,7 +99,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostEntity> findAllWithParamStatus(OffsetLimitQueryDto param, ParametrStatus status) {
+    public List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrStatus status) {
         final int offset = param.getOffset();
         int limit = param.getLimit() < 1 ? 10 : param.getLimit();
 
@@ -109,19 +108,20 @@ public class PostServiceImpl implements PostService {
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(sortDir, sortName));
 
         Boolean isActive = false;
+
         ModerationStatus moderationStatus = ModerationStatus.NEW;
-        if (status == ParametrStatus.inactive) {
+        if (status == ParametrStatus.INACTIVE) {
             isActive = false;
         }
-        if (status == ParametrStatus.pending) {
+        if (status == ParametrStatus.PENDING) {
             isActive = true;
             moderationStatus = ModerationStatus.NEW;
         }
-        if (status == ParametrStatus.declined) {
+        if (status == ParametrStatus.DECLINED) {
             isActive = true;
             moderationStatus = ModerationStatus.DECLINED;
         }
-        if (status == ParametrStatus.published) {
+        if (status == ParametrStatus.PUBLISHED) {
             isActive = true;
             moderationStatus = ModerationStatus.ACCEPTED;
         }
@@ -220,8 +220,7 @@ public class PostServiceImpl implements PostService {
     public PostsDto apiPost(OffsetLimitQueryDto param, ParametrMode mode, final Map<Integer, String> mapStatLDC) {
 
         final Integer count = countAll();
-        final List<PostEntity> allPosts = findAllWithParamMode(param, mode);
-
+        final List<PostEntity> allPosts = findAllWithParam(param, mode);
         List<PostDto> postDtos = getPostDtos(mapStatLDC, allPosts);
         PostsDto postsDto = new PostsDto(count, postDtos);
         return postsDto;
@@ -229,14 +228,11 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = false)
-    public PostsDto apiPostMy(OffsetLimitQueryDto param, ParametrStatus status, final Map<Integer, String> mapStatLDC) {
+    public PostsDto apiPost(OffsetLimitQueryDto param, ParametrStatus status, final Map<Integer, String> mapStatLDC) {
 
         final Integer count = countAll();
-        final List<PostEntity> allPosts = findAllWithParamStatus(param, status);
-
+        final List<PostEntity> allPosts = findAllWithParam(param, status);
         List<PostDto> postDtos = getPostDtos(mapStatLDC, allPosts);
-
-
         PostsDto postsDto = new PostsDto(count, postDtos);
         return postsDto;
     }
@@ -330,7 +326,7 @@ public class PostServiceImpl implements PostService {
         final Integer count = postsRepository.countAllByIsActiveAndModerationStatusAndTimeIsBefore(true,
             ModerationStatus.ACCEPTED, LocalDateTime.now());
         final int offset = param.getOffset();
-        int limit = param.getLimit() < 1 ? 1 : param.getLimit();
+        int limit = param.getLimit() < 1 ? 10 : param.getLimit();
 
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "time"));
         final Page<PostEntity> allPosts = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBefore(
@@ -343,7 +339,7 @@ public class PostServiceImpl implements PostService {
         final Integer count = postsRepository.countAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains(true,
             ModerationStatus.ACCEPTED, LocalDateTime.now(), query);
         final int offset = param.getOffset();
-        int limit = param.getLimit() < 1 ? 1 : param.getLimit();
+        int limit = param.getLimit() < 1 ? 10 : param.getLimit();
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(Sort.Direction.ASC, "time"));
         final Page<PostEntity> allPosts = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains(
             true, ModerationStatus.ACCEPTED, LocalDateTime.now(), query, pag);

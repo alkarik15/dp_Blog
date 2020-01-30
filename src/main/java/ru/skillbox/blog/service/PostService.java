@@ -20,13 +20,13 @@ import ru.skillbox.blog.model.enums.ModerationStatus;
 public interface PostService {
     Integer countAll();
 
-    List<PostEntity> findAllWithParamMode(OffsetLimitQueryDto param, ParametrMode mode);
+    List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrMode mode);
 
-    List<PostEntity> findAllWithParamStatus(OffsetLimitQueryDto param, ParametrStatus status);
+    List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrStatus status);
 
     PostsDto apiPost(OffsetLimitQueryDto param, ParametrMode mode, Map<Integer, String> mapStatLDC);
 
-    PostsDto apiPostMy(OffsetLimitQueryDto param, ParametrStatus status, Map<Integer, String> mapStatLDC);
+    PostsDto apiPost(OffsetLimitQueryDto param, ParametrStatus status, Map<Integer, String> mapStatLDC);
 
     void save(PostEntity posts);
 
