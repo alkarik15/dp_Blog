@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import ru.skillbox.blog.model.PostCommentEntity;
+import ru.skillbox.blog.model.PostEntity;
 
 /**
  * @author alkarik
@@ -11,5 +12,5 @@ import ru.skillbox.blog.model.PostCommentEntity;
  */
 @Repository
 public interface PostCommentsRepository extends CrudRepository<PostCommentEntity, Integer> {
-    List<PostCommentEntity> findAllByPostId(Integer postsId);
+    List<PostCommentEntity> findAllByPostId(PostEntity postId);
 }

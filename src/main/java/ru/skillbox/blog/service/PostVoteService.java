@@ -8,7 +8,7 @@ import ru.skillbox.blog.model.PostVoteEntity;
  * @link http://alkarik
  */
 public interface PostVoteService {
-    Map<Integer, String> findStatistics();
+    Map<Integer, String> findStatistics(Integer userId);
 
     String findStatPost(Integer id);
 

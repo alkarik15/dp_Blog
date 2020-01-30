@@ -8,6 +8,8 @@ import ru.skillbox.blog.dto.LoginDto;
 import ru.skillbox.blog.dto.ResultLoginDto;
 import ru.skillbox.blog.dto.UserLoginDto;
 import ru.skillbox.blog.model.UserEntity;
+import ru.skillbox.blog.model.enums.ModerationStatus;
+import ru.skillbox.blog.repository.PostsRepository;
 import ru.skillbox.blog.repository.UsersRepository;
 import ru.skillbox.blog.service.UserService;
 
@@ -20,6 +22,9 @@ import ru.skillbox.blog.service.UserService;
 public class UserServiceImpl implements UserService {
     @Autowired
     private UsersRepository usersRepository;
+
+    @Autowired
+    private PostsRepository postsRepository;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -55,5 +60,21 @@ public class UserServiceImpl implements UserService {
     public Boolean isModerator(final Integer userId) {
         UserEntity userEntity=usersRepository.findAllById(userId);
         return userEntity.getIsModerator();
+    }
+    @Override
+    public UserEntity findUserById(final Integer userId) {
+        return usersRepository.findAllById(userId);
+    }
+
+    @Override
+    public UserLoginDto getUserLoginDto(final Integer userId) {
+        final UserEntity userEntity = usersRepository.findAllById(userId);
+
+        UserLoginDto userDto = modelMapper.map(userEntity, UserLoginDto.class);
+        userDto.setModeration(userEntity.getIsModerator());
+        userDto.setSettings(userEntity.getIsModerator());
+
+        userDto.setModerationCount(postsRepository.countAllByIsActiveAndModerationStatus(true, ModerationStatus.NEW));
+        return userDto;
     }
 }

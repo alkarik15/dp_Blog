@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.skillbox.blog.dto.CommentsDto;
 import ru.skillbox.blog.model.PostCommentEntity;
+import ru.skillbox.blog.model.PostEntity;
 import ru.skillbox.blog.repository.PostCommentsRepository;
 import ru.skillbox.blog.service.PostCommentService;
 
@@ -25,9 +26,8 @@ public class PostCommentImpl implements PostCommentService {
     private ModelMapper modelMapper;
 
     @Override
-    public List<CommentsDto> findByPostId(final Integer id) {
-        List<PostCommentEntity> commentsByPostId = postCommentsRepository.findAllByPostId(id);
-
+    public List<CommentsDto> findByPostId(PostEntity postId) {
+        List<PostCommentEntity> commentsByPostId = postCommentsRepository.findAllByPostId(postId);
         List<CommentsDto> listCommentsDto = commentsByPostId
             .stream()
             .map(postComment -> modelMapper.map(postComment, CommentsDto.class))

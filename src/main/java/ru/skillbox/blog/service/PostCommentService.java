@@ -2,11 +2,12 @@ package ru.skillbox.blog.service;
 
 import java.util.List;
 import ru.skillbox.blog.dto.CommentsDto;
+import ru.skillbox.blog.model.PostEntity;
 
 /**
  * @author alkarik
  * @link http://alkarik
  */
 public interface PostCommentService {
-    List<CommentsDto> findByPostId(Integer id);
+    List<CommentsDto> findByPostId(PostEntity postId);
 }

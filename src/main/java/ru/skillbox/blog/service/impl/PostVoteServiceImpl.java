@@ -34,8 +34,8 @@ public class PostVoteServiceImpl implements PostVoteService {
     private PostsRepository postsRepository;
 
     @Override
-    public Map<Integer, String> findStatistics() {
-        final List<Object[]> statLDCs = postVotesRepository.statLDC();
+    public Map<Integer, String> findStatistics(Integer userId) {
+        List<Object[]> statLDCs = (userId == null) ? postVotesRepository.statLDC() : postVotesRepository.statLDCMy(userId);
         Map<Integer, String> mapLDC = new HashMap<>();
         for (Object[] statLDC : statLDCs) {
             String sss = String.join(":", Arrays.stream(statLDC).map(Object::toString).toArray(String[]::new));

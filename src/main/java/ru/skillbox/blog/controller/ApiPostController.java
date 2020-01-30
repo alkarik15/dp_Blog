@@ -4,7 +4,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -19,10 +18,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.skillbox.blog.dto.AddPostDto;
-import ru.skillbox.blog.dto.CommentsDto;
 import ru.skillbox.blog.dto.OffsetLimitQueryDto;
 import ru.skillbox.blog.dto.PostByIdDto;
 import ru.skillbox.blog.dto.PostIdDto;
@@ -31,6 +30,7 @@ import ru.skillbox.blog.dto.ResultLikeDislikeDto;
 import ru.skillbox.blog.dto.ResultLoginDto;
 import ru.skillbox.blog.dto.ResultsDto;
 import ru.skillbox.blog.dto.enums.ParametrMode;
+import ru.skillbox.blog.dto.enums.ParametrStatus;
 import ru.skillbox.blog.model.enums.ModerationStatus;
 import ru.skillbox.blog.service.PostCommentService;
 import ru.skillbox.blog.service.PostService;
@@ -56,7 +56,7 @@ public class ApiPostController {
     @GetMapping()
     @ResponseBody
     public String apiPost(OffsetLimitQueryDto param, ParametrMode mode) {
-        final Map<Integer, String> mapStatLDC = postVoteService.findStatistics();
+        final Map<Integer, String> mapStatLDC = postVoteService.findStatistics(null);
         PostsDto postsDto = postService.apiPost(param, mode, mapStatLDC);
         Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDateTime.class,
             (JsonSerializer<LocalDateTime>)
@@ -86,12 +86,6 @@ public class ApiPostController {
     @GetMapping("/{id}")
     public ResponseEntity<PostByIdDto> apiPostById(@PathVariable("id") Integer id) {
         PostByIdDto postByDto = postService.getPostByIdModerationStatusActiveTime(id, true, ModerationStatus.ACCEPTED, LocalDateTime.now());
-
-        String[] stats = postVoteService.findStatPost(id).split(":");
-        postByDto.setLikes(Integer.parseInt(stats[1]));
-        postByDto.setDislikes(Integer.parseInt(stats[2]));
-        List<CommentsDto> listCommentsDto = postCommentService.findByPostId(id);
-        postByDto.setComments(listCommentsDto);
         return new ResponseEntity<>(postByDto, HttpStatus.OK);
     }
 
@@ -106,19 +100,26 @@ public class ApiPostController {
     }
 
     @GetMapping("/moderation")
-    public String apiPostModeration(OffsetLimitQueryDto param, ModerationStatus status) {
-        PostsDto postsDto = postService.apiPostModeration(param, status);
-        Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDateTime.class,
-            (JsonSerializer<LocalDateTime>)
-                (src, typeOfSrc, context) ->
-                    src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))))
-            .create();
-        return gson.toJson(postsDto);
+    public ResponseEntity<PostsDto> apiPostModeration(HttpServletRequest request, OffsetLimitQueryDto param, @RequestParam(name = "status") String status) {
+        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
+            ModerationStatus moderationStatus = ModerationStatus.valueOf(status.toUpperCase());
+            PostsDto postsDto = postService.apiPostModeration(param, moderationStatus);
+            return new ResponseEntity<>(postsDto, HttpStatus.OK);
+        } else {
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+        }
     }
 
     @GetMapping("/my")
-    public String apiPostMy(OffsetLimitQueryDto param) {
-        return null;
+    public ResponseEntity<PostsDto> apiPostMy(HttpServletRequest request, OffsetLimitQueryDto param, @RequestParam("status") ParametrStatus status) {
+        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
+            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
+            final Map<Integer, String> mapStatLDC = postVoteService.findStatistics(userId);
+            PostsDto postsDto = postService.apiPostMy(param, status, mapStatLDC);
+            return new ResponseEntity<>(postsDto, HttpStatus.OK);
+        } else {
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+        }
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
