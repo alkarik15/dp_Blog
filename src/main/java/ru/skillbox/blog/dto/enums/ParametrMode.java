@@ -5,9 +5,8 @@ package ru.skillbox.blog.dto.enums;
  * @link http://alkarik
  */
 public enum ParametrMode {
-    recent,
-    popular,
-    best,
-    early;
-
+    RECENT,
+    POPULAR,
+    BEST,
+    EARLY
 }

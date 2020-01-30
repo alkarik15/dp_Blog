@@ -5,8 +5,8 @@ package ru.skillbox.blog.dto.enums;
  * @link http://alkarik
  */
 public enum ParametrStatus {
-    inactive,
-    pending,
-    declined,
-    published;
+    INACTIVE,
+    PENDING,
+    DECLINED,
+    PUBLISHED
 }
