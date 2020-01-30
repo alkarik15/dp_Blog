@@ -9,6 +9,7 @@ import ru.skillbox.blog.dto.PostByIdDto;
 import ru.skillbox.blog.dto.PostModeration;
 import ru.skillbox.blog.dto.PostsDto;
 import ru.skillbox.blog.dto.enums.ParametrMode;
+import ru.skillbox.blog.dto.enums.ParametrStatus;
 import ru.skillbox.blog.model.PostEntity;
 import ru.skillbox.blog.model.enums.ModerationStatus;
 
@@ -19,9 +20,13 @@ import ru.skillbox.blog.model.enums.ModerationStatus;
 public interface PostService {
     Integer countAll();
 
-    List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrMode mode);
+    List<PostEntity> findAllWithParamMode(OffsetLimitQueryDto param, ParametrMode mode);
+
+    List<PostEntity> findAllWithParamStatus(OffsetLimitQueryDto param, ParametrStatus status);
 
     PostsDto apiPost(OffsetLimitQueryDto param, ParametrMode mode, Map<Integer, String> mapStatLDC);
+
+    PostsDto apiPostMy(OffsetLimitQueryDto param, ParametrStatus status, Map<Integer, String> mapStatLDC);
 
     void save(PostEntity posts);
 
@@ -49,4 +54,6 @@ public interface PostService {
     PostsDto getAllPostSearch(OffsetLimitQueryDto param);
 
     PostsDto getAllPostSearchByQuery(OffsetLimitQueryDto param, String query);
+
+    PostEntity getPostById(Integer id);
 }

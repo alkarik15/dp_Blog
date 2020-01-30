@@ -1,6 +1,5 @@
 package ru.skillbox.blog.dto;
 
-import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -13,13 +12,13 @@ public class PostDto {
 
     private UserDto user;
 
-    private LocalDateTime time;
+    private String time;
 
     private String title;
 
     private String text;
 
-    private String annonce;
+    private String announce;
 
     @JsonProperty("viewCount")
     private Integer viewCount;
@@ -50,12 +49,12 @@ public class PostDto {
         this.tags = tags;
     }
 
-    public String getAnnonce() {
-        return annonce;
+    public String getAnnounce() {
+        return announce;
     }
 
-    public void setAnnonce(final String annonce) {
-        this.annonce = annonce;
+    public void setAnnounce(final String announce) {
+        this.announce = announce;
     }
 
     public Integer getLikeCount() {
@@ -98,11 +97,11 @@ public class PostDto {
         this.user = user;
     }
 
-    public LocalDateTime getTime() {
+    public String getTime() {
         return time;
     }
 
-    public void setTime(final LocalDateTime time) {
+    public void setTime(final String time) {
         this.time = time;
     }
 

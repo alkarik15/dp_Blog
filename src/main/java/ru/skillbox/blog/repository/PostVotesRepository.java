@@ -24,6 +24,15 @@ public interface PostVotesRepository extends CrudRepository<PostVoteEntity, Inte
     List<Object[]> statLDC();
 
     @Query(nativeQuery = true, value = "SELECT " +
+        "p.post_id AS pid, SUM(IF(p.value=1,1,0)) AS likes, SUM(IF(p.value=-1,1,0)) AS dislikes, " +
+        "COUNT(DISTINCT pc.id) " +
+        "FROM Post_Votes p " +
+        "  LEFT JOIN dp_blog.post_comments AS pc ON pc.post_id=p.post_id " +
+        "WHERE p.user_id = ? " +
+        "GROUP BY p.post_id")
+    List<Object[]> statLDCMy(Integer userId);
+
+    @Query(nativeQuery = true, value = "SELECT " +
         "p.post_id AS pid, SUM(IF(p.value=1,1,0)) AS likes, SUM(IF(p.value=-1,1,0)) AS dislikes " +
         "FROM Post_Votes p  WHERE p.post_id=?")
     List<Object[]> statPost(Integer id);

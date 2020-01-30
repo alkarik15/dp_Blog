@@ -22,9 +22,12 @@ public interface PostsRepository extends JpaRepository<PostEntity, Integer> {
 
     Page<PostEntity> findAllByIsActiveAndModerationStatusAndTimeIsBefore(Boolean isActive, ModerationStatus moderationStatus, LocalDateTime ldt, Pageable pageable);
 
+    Page<PostEntity> findAllByIsActiveAndTimeIsBefore(Boolean isActive, LocalDateTime ldt, Pageable pageable);
+
     Page<PostEntity> findAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains(Boolean isActive, ModerationStatus moderationStatus, LocalDateTime ldt, String query, Pageable pageable);
 
     Page<PostEntity> findAllByIsActiveAndModerationStatus(Boolean isActive, ModerationStatus moderationStatus, Pageable pageable);
+
 
     @Query(nativeQuery = true, value = "SELECT COUNT(DISTINCT p.id) as postCount, SUM(p.view_count) as showCount, MIN(p.time) as firstPubl " +
         "FROM posts p WHERE p.user_id=?")
@@ -33,6 +36,8 @@ public interface PostsRepository extends JpaRepository<PostEntity, Integer> {
     @Query(nativeQuery = true, value = "SELECT COUNT(DISTINCT p.id) as postCount, SUM(p.view_count) as showCount, MIN(p.time) as firstPubl " +
         "FROM posts p")
     List<Object[]> statPostShow();
+
+    Integer countAllByIsActiveAndModerationStatus(Boolean isActive, ModerationStatus moderationStatus);
 
     Integer countAllByIsActiveAndModerationStatusAndTimeIsBefore(Boolean isActive, ModerationStatus moderationStatus, LocalDateTime ldt);
 

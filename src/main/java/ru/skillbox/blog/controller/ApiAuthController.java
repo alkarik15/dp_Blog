@@ -128,7 +128,9 @@ public class ApiAuthController {
     public ResponseEntity<ResultLoginDto> apiGetCheck(HttpServletRequest request) {
         ResultLoginDto resultLoginDto = new ResultLoginDto();
         if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
+            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
             resultLoginDto.setResult(true);
+            resultLoginDto.setUserLoginDto(userService.getUserLoginDto(userId));
         } else {
             resultLoginDto.setResult(false);
         }

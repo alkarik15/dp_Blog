@@ -1,7 +1,7 @@
 package ru.skillbox.blog.dto;
 
-import java.time.LocalDate;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author alkarik
@@ -11,21 +11,44 @@ import java.util.List;
 public class PostByIdDto {
     private int id;
 
-    private UserDto user;
+    @JsonProperty("user")
+    private UserDto userId;
 
-    private LocalDate time;
+    private String time;
 
     private String title;
 
     private String text;
 
+    private String announce;
+
     private int viewCount;
 
-    private int likes;
+    private int likeCount;
 
-    private int dislikes;
+    private int dislikeCount;
 
     private List<CommentsDto> comments;
+
+    private Integer commentCount;
+
+    private String[] tags;
+
+    public Integer getCommentCount() {
+        return commentCount;
+    }
+
+    public void setCommentCount(final Integer commentCount) {
+        this.commentCount = commentCount;
+    }
+
+    public String[] getTags() {
+        return tags;
+    }
+
+    public void setTags(final String[] tags) {
+        this.tags = tags;
+    }
 
     public int getId() {
         return id;
@@ -35,19 +58,19 @@ public class PostByIdDto {
         this.id = id;
     }
 
-    public UserDto getUser() {
-        return user;
+    public UserDto getUserId() {
+        return userId;
     }
 
-    public void setUser(final UserDto user) {
-        this.user = user;
+    public void setUserId(final UserDto userId) {
+        this.userId = userId;
     }
 
-    public LocalDate getTime() {
+    public String getTime() {
         return time;
     }
 
-    public void setTime(final LocalDate time) {
+    public void setTime(final String time) {
         this.time = time;
     }
 
@@ -75,20 +98,20 @@ public class PostByIdDto {
         this.viewCount = viewCount;
     }
 
-    public int getLikes() {
-        return likes;
+    public int getLikeCount() {
+        return likeCount;
     }
 
-    public void setLikes(final int likes) {
-        this.likes = likes;
+    public void setLikeCount(final int likeCount) {
+        this.likeCount = likeCount;
     }
 
-    public int getDislikes() {
-        return dislikes;
+    public int getDislikeCount() {
+        return dislikeCount;
     }
 
-    public void setDislikes(final int dislikes) {
-        this.dislikes = dislikes;
+    public void setDislikeCount(final int dislikeCount) {
+        this.dislikeCount = dislikeCount;
     }
 
     public List<CommentsDto> getComments() {
@@ -98,4 +121,13 @@ public class PostByIdDto {
     public void setComments(final List<CommentsDto> comments) {
         this.comments = comments;
     }
+
+    public String getAnnounce() {
+        return announce;
+    }
+
+    public void setAnnounce(final String announce) {
+        this.announce = announce;
+    }
+
 }
