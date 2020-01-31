@@ -52,6 +52,8 @@ public class CaptchaServiceImpl implements CaptchaService {
 
     @Override
     public CaptchaDto generateCaptchaDto() {
+        deleteOldCaptсhas();
+
         String chars = "abdefhknrstyz23456789";
         int length = (int) Math.round(Math.random() * 2) + 4;
         int numChars = chars.length() - 1;

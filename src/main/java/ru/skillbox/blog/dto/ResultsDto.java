@@ -11,6 +11,13 @@ public class ResultsDto {
 
     private Map<String, String> errors;
 
+    public ResultsDto(final Boolean result) {
+        this.result = result;
+    }
+
+    public ResultsDto() {
+    }
+
     public Boolean getResult() {
         return result;
     }

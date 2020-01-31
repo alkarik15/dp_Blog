@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.skillbox.blog.model.PostEntity;
+import ru.skillbox.blog.model.UserEntity;
 import ru.skillbox.blog.model.enums.ModerationStatus;
 
 /**
@@ -22,7 +23,11 @@ public interface PostsRepository extends JpaRepository<PostEntity, Integer> {
 
     Page<PostEntity> findAllByIsActiveAndModerationStatusAndTimeIsBefore(Boolean isActive, ModerationStatus moderationStatus, LocalDateTime ldt, Pageable pageable);
 
+    Page<PostEntity> findAllByUserIdAndIsActiveAndModerationStatusAndTimeIsBefore(UserEntity user, Boolean isActive, ModerationStatus moderationStatus, LocalDateTime ldt, Pageable pageable);
+
     Page<PostEntity> findAllByIsActiveAndTimeIsBefore(Boolean isActive, LocalDateTime ldt, Pageable pageable);
+
+    Page<PostEntity> findAllByUserIdAndIsActiveAndTimeIsBefore(UserEntity user, Boolean isActive, LocalDateTime ldt, Pageable pageable);
 
     Page<PostEntity> findAllByIsActiveAndModerationStatusAndTimeIsBeforeAndTextContains(Boolean isActive, ModerationStatus moderationStatus, LocalDateTime ldt, String query, Pageable pageable);
 

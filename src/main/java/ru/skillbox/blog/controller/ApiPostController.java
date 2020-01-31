@@ -2,7 +2,6 @@ package ru.skillbox.blog.controller;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,7 +21,6 @@ import ru.skillbox.blog.dto.PostByIdDto;
 import ru.skillbox.blog.dto.PostIdDto;
 import ru.skillbox.blog.dto.PostsDto;
 import ru.skillbox.blog.dto.ResultLikeDislikeDto;
-import ru.skillbox.blog.dto.ResultLoginDto;
 import ru.skillbox.blog.dto.ResultsDto;
 import ru.skillbox.blog.dto.enums.ParametrMode;
 import ru.skillbox.blog.dto.enums.ParametrStatus;
@@ -48,7 +46,7 @@ public class ApiPostController {
     @ResponseBody
     public ResponseEntity<PostsDto> apiPost(OffsetLimitQueryDto param, @RequestParam(name = "mode") String mode) {
         final Map<Integer, String> mapStatLDC = postVoteService.findStatistics(null);
-        ParametrMode incomeMode = ParametrMode.valueOf(mode);
+        ParametrMode incomeMode = ParametrMode.valueOf(mode.toUpperCase());
         PostsDto postsDto = postService.apiPost(param, incomeMode, mapStatLDC);
 
         return new ResponseEntity<>(postsDto, HttpStatus.OK);
@@ -98,9 +96,10 @@ public class ApiPostController {
     public ResponseEntity<PostsDto> apiPostMy(HttpServletRequest request, OffsetLimitQueryDto param, @RequestParam("status") String status) {
         if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
             Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
+            System.out.println(userId);
             final Map<Integer, String> mapStatLDC = postVoteService.findStatistics(userId);
-            ParametrStatus incomeStatus = ParametrStatus.valueOf(status);
-            PostsDto postsDto = postService.apiPost(param, incomeStatus, mapStatLDC);
+            ParametrStatus incomeStatus = ParametrStatus.valueOf(status.toUpperCase());
+            PostsDto postsDto = postService.apiPost(param, incomeStatus, mapStatLDC, userId);
             return new ResponseEntity<>(postsDto, HttpStatus.OK);
         } else {
             return new ResponseEntity(HttpStatus.UNAUTHORIZED);
@@ -109,38 +108,12 @@ public class ApiPostController {
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResultsDto> apiPostPost(HttpServletRequest request, @RequestBody AddPostDto addPost) {
-        Map<String, String> errors = new HashMap<>();
-        Integer userId = 0;
-        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
-            userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
-            addPost.setLdt(LocalDateTime.parse(addPost.getTime()));
-            if (addPost.getTitle() == null || addPost.getTitle().length() == 0) {
-                errors.put("title", "Заголовок не установлен");
-            } else if (addPost.getTitle().length() <= 10) {
-                errors.put("title", "Заголовок слишком короткий");
-            }
-            if (addPost.getText() == null || addPost.getText().length() == 0) {
-                errors.put("text", "Текст публикации не установлен");
-            } else if (addPost.getText().length() <= 500) {
-                errors.put("text", "Текст публикации слишком короткий");
-            }
-        } else {
-            errors.put("text", "Пользователь не авторизован");
-        }
-
-        ResultsDto result = new ResultsDto();
-        if (errors.size() == 0) {
-            result.setResult(true);
-            postService.createPostFromDto(addPost, ModerationStatus.NEW, LocalDateTime.now(), userId);
-        } else {
-            result.setResult(false);
-            result.setErrors(errors);
-        }
+        ResultsDto result = postService.createPost(request, addPost);
         return new ResponseEntity(result, HttpStatus.OK);
     }
 
     @PostMapping("/like")
-    public ResponseEntity<ResultLoginDto> apiPostLike(HttpServletRequest request, @RequestBody PostIdDto postIdDto) {
+    public ResponseEntity apiPostLike(HttpServletRequest request, @RequestBody PostIdDto postIdDto) {
         if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
             Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
             Integer postId = postIdDto.getPost_id();
@@ -157,7 +130,7 @@ public class ApiPostController {
     }
 
     @PostMapping("/dislike")
-    public ResponseEntity<ResultLikeDislikeDto> apiPostDislike(HttpServletRequest request, @RequestBody PostIdDto
+    public ResponseEntity apiPostDislike(HttpServletRequest request, @RequestBody PostIdDto
         postIdDto) {
         if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
             Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
