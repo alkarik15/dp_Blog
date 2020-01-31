@@ -1,5 +1,6 @@
 package ru.skillbox.blog.service.impl;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import ru.skillbox.blog.dto.PostByIdDto;
 import ru.skillbox.blog.dto.PostDto;
 import ru.skillbox.blog.dto.PostModeration;
 import ru.skillbox.blog.dto.PostsDto;
+import ru.skillbox.blog.dto.ResultsDto;
 import ru.skillbox.blog.dto.UserDto;
 import ru.skillbox.blog.dto.enums.ParametrMode;
 import ru.skillbox.blog.dto.enums.ParametrStatus;
@@ -67,7 +69,7 @@ public class PostServiceImpl implements PostService {
     private PostCommentService postCommentService;
 
     @Override
-    public List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrMode mode) {
+    public List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrMode mode,UserEntity user) {
         final int offset = param.getOffset();
         int limit = param.getLimit() < 1 ? 10 : param.getLimit();
 
@@ -91,15 +93,21 @@ public class PostServiceImpl implements PostService {
         }
 
         final PageRequest pag = PageRequest.of(offset, limit, Sort.by(sortDir, sortName));
-        final Page<PostEntity> all = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBefore(
-            true, ModerationStatus.ACCEPTED, LocalDateTime.now(), pag);
+        Page<PostEntity> all;
+        if(user==null) {
+            all = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBefore(
+                true, ModerationStatus.ACCEPTED, LocalDateTime.now(), pag);
+        }else{
+            all = postsRepository.findAllByUserIdAndIsActiveAndModerationStatusAndTimeIsBefore(
+                user,true, ModerationStatus.ACCEPTED, LocalDateTime.now(), pag);
+        }
         List<PostEntity> posts = new ArrayList<>();
         all.forEach(postEntity -> posts.add(postEntity));
         return posts;
     }
 
     @Override
-    public List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrStatus status) {
+    public List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrStatus status, UserEntity user) {
         final int offset = param.getOffset();
         int limit = param.getLimit() < 1 ? 10 : param.getLimit();
 
@@ -128,9 +136,17 @@ public class PostServiceImpl implements PostService {
 
         Page<PostEntity> all;
         if (isActive) {
-            all = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBefore(isActive, moderationStatus, LocalDateTime.now(), pag);
+            if(user==null) {
+                all = postsRepository.findAllByIsActiveAndModerationStatusAndTimeIsBefore(isActive, moderationStatus, LocalDateTime.now(), pag);
+            }else{
+                all = postsRepository.findAllByUserIdAndIsActiveAndModerationStatusAndTimeIsBefore(user,isActive, moderationStatus, LocalDateTime.now(), pag);
+            }
         } else {
-            all = postsRepository.findAllByIsActiveAndTimeIsBefore(isActive, LocalDateTime.now(), pag);
+            if(user==null) {
+                all = postsRepository.findAllByIsActiveAndTimeIsBefore(isActive, LocalDateTime.now(), pag);
+            }else{
+                all = postsRepository.findAllByUserIdAndIsActiveAndTimeIsBefore(user,isActive, LocalDateTime.now(), pag);
+            }
         }
         List<PostEntity> posts = new ArrayList<>();
         all.forEach(postEntity -> posts.add(postEntity));
@@ -162,9 +178,13 @@ public class PostServiceImpl implements PostService {
         PostByIdDto postDto = modelMapper.map(postById, PostByIdDto.class);
 
         String[] stats = postVoteService.findStatPost(id).split(":");
-        postDto.setLikeCount(Integer.parseInt(stats[1]));
-        postDto.setDislikeCount(Integer.parseInt(stats[2]));
-
+        if(stats[0].length()>0) {
+            postDto.setLikeCount(Integer.parseInt(stats[1]));
+            postDto.setDislikeCount(Integer.parseInt(stats[2]));
+        }else{
+            postDto.setLikeCount(0);
+            postDto.setDislikeCount(0);
+        }
         List<CommentsDto> listCommentsDto = postCommentService.findByPostId(getPostById(id));
 
         postDto.setComments(listCommentsDto);
@@ -220,7 +240,7 @@ public class PostServiceImpl implements PostService {
     public PostsDto apiPost(OffsetLimitQueryDto param, ParametrMode mode, final Map<Integer, String> mapStatLDC) {
 
         final Integer count = countAll();
-        final List<PostEntity> allPosts = findAllWithParam(param, mode);
+        final List<PostEntity> allPosts = findAllWithParam(param, mode,null);
         List<PostDto> postDtos = getPostDtos(mapStatLDC, allPosts);
         PostsDto postsDto = new PostsDto(count, postDtos);
         return postsDto;
@@ -228,11 +248,14 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = false)
-    public PostsDto apiPost(OffsetLimitQueryDto param, ParametrStatus status, final Map<Integer, String> mapStatLDC) {
+    public PostsDto apiPost(OffsetLimitQueryDto param, ParametrStatus status, final Map<Integer, String> mapStatLDC,Integer userId) {
 
         final Integer count = countAll();
-        final List<PostEntity> allPosts = findAllWithParam(param, status);
-        List<PostDto> postDtos = getPostDtos(mapStatLDC, allPosts);
+
+        final UserEntity userById = usersRepository.findAllById(userId);
+
+        final List<PostEntity> allPostsByUserId = findAllWithParam(param, status,userById);
+        List<PostDto> postDtos = getPostDtos(mapStatLDC, allPostsByUserId);
         PostsDto postsDto = new PostsDto(count, postDtos);
         return postsDto;
     }
@@ -258,6 +281,10 @@ public class PostServiceImpl implements PostService {
                 postDto.setLikeCount(Integer.parseInt(splitLikes[1]));
                 postDto.setDislikeCount(Integer.parseInt(splitLikes[2]));
                 postDto.setCommentCount(Integer.parseInt(splitLikes[3]));
+            }else{
+                postDto.setLikeCount(0);
+                postDto.setDislikeCount(0);
+                postDto.setCommentCount(0);
             }
             postDtos.add(postDto);
         }
@@ -380,5 +407,37 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostEntity getPostById(final Integer id) {
         return postsRepository.findById(id).orElse(null);
+    }
+
+    public ResultsDto createPost(HttpServletRequest request, AddPostDto addPost) {
+        Map<String, String> errors = new HashMap<>();
+        Integer userId=null;
+        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
+            userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
+
+            addPost.setLdt(LocalDateTime.parse(addPost.getTime()));
+            if (addPost.getTitle() == null || addPost.getTitle().length() == 0) {
+                errors.put("title", "Заголовок не установлен");
+            } else if (addPost.getTitle().length() <= 10) {
+                errors.put("title", "Заголовок слишком короткий");
+            }
+            if (addPost.getText() == null || addPost.getText().length() == 0) {
+                errors.put("text", "Текст публикации не установлен");
+            } else if (addPost.getText().length() <= 500) {
+                errors.put("text", "Текст публикации слишком короткий");
+            }
+        } else {
+            errors.put("text", "Пользователь не авторизован");
+        }
+
+        ResultsDto result = new ResultsDto();
+        if (errors.size() == 0) {
+            result.setResult(true);
+            createPostFromDto(addPost, ModerationStatus.NEW, LocalDateTime.now(), userId);
+        } else {
+            result.setResult(false);
+            result.setErrors(errors);
+        }
+        return result;
     }
 }

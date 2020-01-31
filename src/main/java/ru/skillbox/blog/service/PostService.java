@@ -1,5 +1,6 @@
 package ru.skillbox.blog.service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -8,9 +9,11 @@ import ru.skillbox.blog.dto.OffsetLimitQueryDto;
 import ru.skillbox.blog.dto.PostByIdDto;
 import ru.skillbox.blog.dto.PostModeration;
 import ru.skillbox.blog.dto.PostsDto;
+import ru.skillbox.blog.dto.ResultsDto;
 import ru.skillbox.blog.dto.enums.ParametrMode;
 import ru.skillbox.blog.dto.enums.ParametrStatus;
 import ru.skillbox.blog.model.PostEntity;
+import ru.skillbox.blog.model.UserEntity;
 import ru.skillbox.blog.model.enums.ModerationStatus;
 
 /**
@@ -20,13 +23,15 @@ import ru.skillbox.blog.model.enums.ModerationStatus;
 public interface PostService {
     Integer countAll();
 
-    List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrMode mode);
+    //    List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrMode mode);
+    List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrMode mod, UserEntity user);
 
-    List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrStatus status);
+    //    List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrStatus status);
+    List<PostEntity> findAllWithParam(OffsetLimitQueryDto param, ParametrStatus status, UserEntity userId);
 
     PostsDto apiPost(OffsetLimitQueryDto param, ParametrMode mode, Map<Integer, String> mapStatLDC);
 
-    PostsDto apiPost(OffsetLimitQueryDto param, ParametrStatus status, Map<Integer, String> mapStatLDC);
+    PostsDto apiPost(OffsetLimitQueryDto param, ParametrStatus status, Map<Integer, String> mapStatLDC, Integer userId);
 
     void save(PostEntity posts);
 
@@ -56,4 +61,6 @@ public interface PostService {
     PostsDto getAllPostSearchByQuery(OffsetLimitQueryDto param, String query);
 
     PostEntity getPostById(Integer id);
+
+    ResultsDto createPost(HttpServletRequest request, AddPostDto addPost);
 }

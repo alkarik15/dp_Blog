@@ -17,5 +17,4 @@ public interface CaptchaService {
     void deleteCaptcha(CaptchaCodeEntity captcha);
 
     CaptchaDto generateCaptchaDto();
-
 }

@@ -1,16 +1,23 @@
 package ru.skillbox.blog.service.impl;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.skillbox.blog.dto.LoginDto;
 import ru.skillbox.blog.dto.ResultLoginDto;
+import ru.skillbox.blog.dto.ResultsDto;
 import ru.skillbox.blog.dto.UserLoginDto;
+import ru.skillbox.blog.dto.UserRegisterDto;
+import ru.skillbox.blog.model.CaptchaCodeEntity;
 import ru.skillbox.blog.model.UserEntity;
 import ru.skillbox.blog.model.enums.ModerationStatus;
 import ru.skillbox.blog.repository.PostsRepository;
 import ru.skillbox.blog.repository.UsersRepository;
+import ru.skillbox.blog.service.CaptchaService;
 import ru.skillbox.blog.service.UserService;
 
 /**
@@ -28,6 +35,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private CaptchaService captchaService;
 
     @Override
     public boolean existEmail(final String email) {
@@ -58,9 +68,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Boolean isModerator(final Integer userId) {
-        UserEntity userEntity=usersRepository.findAllById(userId);
+        UserEntity userEntity = usersRepository.findAllById(userId);
         return userEntity.getIsModerator();
     }
+
     @Override
     public UserEntity findUserById(final Integer userId) {
         return usersRepository.findAllById(userId);
@@ -76,5 +87,43 @@ public class UserServiceImpl implements UserService {
 
         userDto.setModerationCount(postsRepository.countAllByIsActiveAndModerationStatus(true, ModerationStatus.NEW));
         return userDto;
+    }
+
+    public ResultsDto createUser(UserRegisterDto userRegister) {
+        Map<String, String> errors;
+        errors = validateRegistration(userRegister);
+
+        ResultsDto result = new ResultsDto();
+        if (errors.size() == 0) {
+            //пока нет имени будет почта
+            addUser(new UserEntity(LocalDateTime.now(), userRegister.getEmail(), userRegister.getEmail(), userRegister.getPassword()));
+            result.setResult(true);
+        } else {
+            result.setResult(false);
+            result.setErrors(errors);
+        }
+        return result;
+    }
+
+    public Map<String, String> validateRegistration(final UserRegisterDto userRegister) {
+        Map<String, String> errors = new HashMap<>();
+        if (userRegister.getName() == null || userRegister.getName().length() == 0) {
+            errors.put("name", "Имя указано не верно");
+        }
+        if (userRegister.getPassword().length() < 6) {
+            errors.put("password", "Пароль короче 6-ти символов");
+        }
+        if (existEmail(userRegister.getEmail())) {
+            errors.put("email", "Этот e-mail уже зарегистрирован");
+        }
+        if (errors.size() == 0) {
+            final CaptchaCodeEntity captcha = captchaService.findCaptcha(userRegister.getCaptcha(), userRegister.getCaptchaSecret());
+            if (captcha == null) {
+                errors.put("captcha", "Код с картинки введен не верно");
+            } else {
+                captchaService.deleteCaptcha(captcha);
+            }
+        }
+        return errors;
     }
 }

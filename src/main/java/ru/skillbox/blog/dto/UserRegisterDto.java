@@ -1,14 +1,22 @@
 package ru.skillbox.blog.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * @author alkarik
  * @link http://alkarik
  */
 public class UserRegisterDto {
+    @JsonProperty("e_mail")
     private String email;
+
     private String name;
+
     private String password;
+
     private String captcha;
+
+    @JsonProperty("captcha_secret")
     private String captchaSecret;
 
     public String getEmail() {

@@ -20,7 +20,7 @@ public class UserEntity {
     private int id;
 
     @Column(nullable = false)
-    private Boolean isModerator;
+    private Boolean isModerator = false;
 
     @Column(nullable = false, columnDefinition = "DATETIME")
     private LocalDateTime regTime;

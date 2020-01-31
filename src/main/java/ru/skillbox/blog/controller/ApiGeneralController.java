@@ -1,14 +1,11 @@
 package ru.skillbox.blog.controller;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -24,6 +21,7 @@ import ru.skillbox.blog.component.HeaderProperties;
 import ru.skillbox.blog.dto.PostModeration;
 import ru.skillbox.blog.dto.TagsDto;
 import ru.skillbox.blog.model.GlobalSettingEntity;
+import ru.skillbox.blog.service.FileService;
 import ru.skillbox.blog.service.GlobalSettingService;
 import ru.skillbox.blog.service.PostService;
 import ru.skillbox.blog.service.TagService;
@@ -51,11 +49,9 @@ public class ApiGeneralController {
     @Autowired
     private TagService tagService;
 
-    @Value("${upload.path}")
-    private String uploadPath;
+    @Autowired
+    private FileService fileService;
 
-    @Value("${upload.dir}")
-    private String uploadDir;
 
     @GetMapping("/init")
     public ResponseEntity<Map<String, String>> initHeader() {
@@ -64,13 +60,13 @@ public class ApiGeneralController {
 
     @GetMapping("/settings")
     public ResponseEntity<Map<String, Boolean>> apiGetSettings(HttpServletRequest request) {
-        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
-            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
-            if (userService.isModerator(userId)) {
-                return new ResponseEntity(getSettings(), HttpStatus.OK);
-            }
-        }
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+//        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
+//            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
+//            if (userService.isModerator(userId)) {
+        return new ResponseEntity(getSettings(), HttpStatus.OK);
+//            }
+//        }
+//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @PutMapping(value = "/settings")
@@ -126,22 +122,7 @@ public class ApiGeneralController {
 
     @PostMapping("/image")
     public String apiPostImage(@RequestParam("image") MultipartFile uploadFile) throws IOException {
-        if (uploadFile.isEmpty()) {
-            return "please select a file!";
-        }
-        String uuidFile = UUID.randomUUID().toString();
-        final String dirPath = uploadDir + "/" + uuidFile.substring(0, 2) + "/"
-            + uuidFile.substring(2, 4) + "/" + uuidFile.substring(4, 6);
-        if (uploadFile != null) {
-            File uploadDir = new File(uploadPath + "/" + dirPath);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
-            }
-        }
-        final String fileName = "/" + uuidFile.substring(uuidFile.length() - 5)
-            + uploadFile.getOriginalFilename().substring(uploadFile.getOriginalFilename().lastIndexOf("."));
-        uploadFile.transferTo(new File(uploadPath + "/" + dirPath + fileName).getAbsoluteFile());
-        return dirPath + fileName;
+        return fileService.saveImage(uploadFile);
     }
 
     @PostMapping("/moderation")

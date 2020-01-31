@@ -49,7 +49,9 @@ public class PostVoteServiceImpl implements PostVoteService {
         final List<Object[]> statPost = postVotesRepository.statPost(id);
         String strStat = "";
         for (Object[] stat : statPost) {
-            strStat = String.join(":", Arrays.stream(stat).map(Object::toString).toArray(String[]::new));
+            if (stat[0] != null) {
+                strStat = String.join(":", Arrays.stream(stat).map(Object::toString).toArray(String[]::new));
+            }
         }
         return strStat;
     }
