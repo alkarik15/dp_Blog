@@ -1,5 +1,6 @@
 package ru.skillbox.blog.service.impl;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +13,7 @@ import ru.skillbox.blog.dto.ResultLoginDto;
 import ru.skillbox.blog.dto.ResultsDto;
 import ru.skillbox.blog.dto.UserLoginDto;
 import ru.skillbox.blog.dto.UserRegisterDto;
+import ru.skillbox.blog.exception.UserUnauthorizedException;
 import ru.skillbox.blog.model.CaptchaCodeEntity;
 import ru.skillbox.blog.model.UserEntity;
 import ru.skillbox.blog.model.enums.ModerationStatus;
@@ -125,5 +127,12 @@ public class UserServiceImpl implements UserService {
             }
         }
         return errors;
+    }
+    public Integer getUserIdFromSession(final HttpServletRequest request) {
+        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
+            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
+            return userId;
+        }
+        throw new UserUnauthorizedException("User unauthorized");
     }
 }
