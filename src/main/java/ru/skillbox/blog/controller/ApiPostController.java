@@ -27,6 +27,7 @@ import ru.skillbox.blog.dto.enums.ParametrStatus;
 import ru.skillbox.blog.model.enums.ModerationStatus;
 import ru.skillbox.blog.service.PostService;
 import ru.skillbox.blog.service.PostVoteService;
+import ru.skillbox.blog.service.UserService;
 
 /**
  * @author alkarik
@@ -41,6 +42,9 @@ public class ApiPostController {
 
     @Autowired
     private PostVoteService postVoteService;
+
+    @Autowired
+    private UserService userService;
 
     @GetMapping()
     @ResponseBody
@@ -83,28 +87,22 @@ public class ApiPostController {
 
     @GetMapping("/moderation")
     public ResponseEntity<PostsDto> apiPostModeration(HttpServletRequest request, OffsetLimitQueryDto param, @RequestParam(name = "status") String status) {
-        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
-            ModerationStatus moderationStatus = ModerationStatus.valueOf(status.toUpperCase());
-            PostsDto postsDto = postService.apiPostModeration(param, moderationStatus);
-            return new ResponseEntity<>(postsDto, HttpStatus.OK);
-        } else {
-            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
-        }
+        Integer userId = userService.getUserIdFromSession(request);
+        ModerationStatus moderationStatus = ModerationStatus.valueOf(status.toUpperCase());
+        PostsDto postsDto = postService.apiPostModeration(param, moderationStatus);
+        return new ResponseEntity<>(postsDto, HttpStatus.OK);
     }
 
     @GetMapping("/my")
     public ResponseEntity<PostsDto> apiPostMy(HttpServletRequest request, OffsetLimitQueryDto param, @RequestParam("status") String status) {
-        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
-            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
-            System.out.println(userId);
-            final Map<Integer, String> mapStatLDC = postVoteService.findStatistics(userId);
-            ParametrStatus incomeStatus = ParametrStatus.valueOf(status.toUpperCase());
-            PostsDto postsDto = postService.apiPost(param, incomeStatus, mapStatLDC, userId);
-            return new ResponseEntity<>(postsDto, HttpStatus.OK);
-        } else {
-            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
-        }
+        Integer userId = userService.getUserIdFromSession(request);
+        System.out.println(userId);
+        final Map<Integer, String> mapStatLDC = postVoteService.findStatistics(userId);
+        ParametrStatus incomeStatus = ParametrStatus.valueOf(status.toUpperCase());
+        PostsDto postsDto = postService.apiPost(param, incomeStatus, mapStatLDC, userId);
+        return new ResponseEntity<>(postsDto, HttpStatus.OK);
     }
+
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResultsDto> apiPostPost(HttpServletRequest request, @RequestBody AddPostDto addPost) {
@@ -114,32 +112,23 @@ public class ApiPostController {
 
     @PostMapping("/like")
     public ResponseEntity apiPostLike(HttpServletRequest request, @RequestBody PostIdDto postIdDto) {
-        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
-            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
-            Integer postId = postIdDto.getPost_id();
-            if (postId != null && postId > 0) {
-                Boolean postLike = postVoteService.setLikeByPostIdAndUserId(postId, userId);
-                ResultLikeDislikeDto resultLikeDislikeDto = new ResultLikeDislikeDto(postLike);
-                return new ResponseEntity(resultLikeDislikeDto, HttpStatus.OK);
-            } else {
-                return new ResponseEntity(HttpStatus.OK);
-            }
+        Integer userId = userService.getUserIdFromSession(request);
+        Integer postId = postIdDto.getPost_id();
+        if (postId != null && postId > 0) {
+            Boolean postLike = postVoteService.setLikeByPostIdAndUserId(postId, userId);
+            ResultLikeDislikeDto resultLikeDislikeDto = new ResultLikeDislikeDto(postLike);
+            return new ResponseEntity(resultLikeDislikeDto, HttpStatus.OK);
         } else {
-            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity(HttpStatus.OK);
         }
     }
 
     @PostMapping("/dislike")
-    public ResponseEntity apiPostDislike(HttpServletRequest request, @RequestBody PostIdDto
-        postIdDto) {
-        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
-            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
-            Integer postId = postIdDto.getPost_id();
-            Boolean postDisLike = postVoteService.findDislikeByPostIdAndUserId(postId, userId);
-            ResultLikeDislikeDto resultLikeDislikeDto = new ResultLikeDislikeDto(postDisLike);
-            return new ResponseEntity(resultLikeDislikeDto, HttpStatus.OK);
-        } else {
-            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
-        }
+    public ResponseEntity apiPostDislike(HttpServletRequest request, @RequestBody PostIdDto postIdDto) {
+        Integer userId = userService.getUserIdFromSession(request);
+        Integer postId = postIdDto.getPost_id();
+        Boolean postDisLike = postVoteService.findDislikeByPostIdAndUserId(postId, userId);
+        ResultLikeDislikeDto resultLikeDislikeDto = new ResultLikeDislikeDto(postDisLike);
+        return new ResponseEntity(resultLikeDislikeDto, HttpStatus.OK);
     }
 }

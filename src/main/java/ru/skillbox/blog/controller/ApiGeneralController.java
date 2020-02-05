@@ -52,7 +52,6 @@ public class ApiGeneralController {
     @Autowired
     private FileService fileService;
 
-
     @GetMapping("/init")
     public ResponseEntity<Map<String, String>> initHeader() {
         return new ResponseEntity(headerProperties.getHeader(), HttpStatus.OK);
@@ -60,30 +59,27 @@ public class ApiGeneralController {
 
     @GetMapping("/settings")
     public ResponseEntity<Map<String, Boolean>> apiGetSettings(HttpServletRequest request) {
-//        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
-//            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
-//            if (userService.isModerator(userId)) {
-        return new ResponseEntity(getSettings(), HttpStatus.OK);
-//            }
-//        }
-//        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        Integer userId = userService.getUserIdFromSession(request);
+        if (userService.isModerator(userId)) {
+            return new ResponseEntity(getSettings(), HttpStatus.OK);
+        }
+        return new ResponseEntity(HttpStatus.UNAUTHORIZED);
     }
 
     @PutMapping(value = "/settings")
     public ResponseEntity<Map<String, Boolean>> apiPutSettings(HttpServletRequest request, @RequestBody Map<String, Boolean> globalSettings) throws HttpMessageNotReadableException {
-        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
-            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
-            if (userService.isModerator(userId)) {
-                //TODO Валидация входных данных ?
-                for (Map.Entry<String, Boolean> entry : globalSettings.entrySet()) {
-                    globalSettingService.createSetting(
-                        new GlobalSettingEntity(entry.getKey(), entry.getValue().equals(true) ? "YES" : "NO")
-                    );
-                }
-                return new ResponseEntity(getSettings(), HttpStatus.OK);
+        Integer userId = userService.getUserIdFromSession(request);
+        if (userService.isModerator(userId)) {
+            //TODO Валидация входных данных ?
+            for (Map.Entry<String, Boolean> entry : globalSettings.entrySet()) {
+                globalSettingService.createSetting(
+                    new GlobalSettingEntity(entry.getKey(), entry.getValue().equals(true) ? "YES" : "NO")
+                );
             }
+            return new ResponseEntity(getSettings(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
         }
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     private Map<String, Boolean> getSettings() {
@@ -96,25 +92,19 @@ public class ApiGeneralController {
 
     @GetMapping("/statistics/my")
     public ResponseEntity<Map<String, String>> apiGetStatMy(HttpServletRequest request) {
-        if (request.getSession().getAttribute("user") != null && request.getSession().getAttribute("user").toString().length() > 0) {
-            Integer userId = Integer.parseInt(request.getSession().getAttribute("user").toString());
-            Map<String, String> mapStatMy = postService.statMy(userId);
-            return new ResponseEntity(mapStatMy, HttpStatus.OK);
-        }
-        return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+        Integer userId = userService.getUserIdFromSession(request);
+        Map<String, String> mapStatMy = postService.statMy(userId);
+        return new ResponseEntity(mapStatMy, HttpStatus.OK);
     }
 
     @GetMapping("/statistics/all")
     public ResponseEntity apiGetStatAll(HttpServletRequest request) {
         Map<String, Boolean> sett = getSettings();
         Boolean isPublic = sett.get("STATISTICS_IS_PUBLIC");
-        if (request.getSession().getAttribute("user") != null
-            && request.getSession().getAttribute("user").toString().length() > 0
-            && isPublic
-        ) {
+        Integer userId = userService.getUserIdFromSession(request);
+        if (isPublic) {
             Map<String, String> mapStatMy = postService.statAll();
             Gson gson = new Gson();
-
             return new ResponseEntity(gson.toJson(mapStatMy), HttpStatus.OK);
         }
         return new ResponseEntity(HttpStatus.UNAUTHORIZED);
@@ -127,13 +117,9 @@ public class ApiGeneralController {
 
     @PostMapping("/moderation")
     public ResponseEntity apiPostImage(HttpServletRequest request, @RequestBody PostModeration postModeration) {
-        if (request.getSession().getAttribute("user") != null
-            && request.getSession().getAttribute("user").toString().length() > 0) {
-            Integer moderatorId = Integer.parseInt(request.getSession().getAttribute("user").toString());
-            postService.setModeration(postModeration, moderatorId);
-            return new ResponseEntity(HttpStatus.OK);
-        }
-        return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+        Integer moderatorId = userService.getUserIdFromSession(request);
+        postService.setModeration(postModeration, moderatorId);
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     @GetMapping("/tag")
