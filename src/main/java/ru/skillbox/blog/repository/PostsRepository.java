@@ -17,7 +17,8 @@ import ru.skillbox.blog.model.enums.ModerationStatus;
  */
 @Repository
 public interface PostsRepository extends JpaRepository<PostEntity, Integer> {
-    PostEntity findByIdAndIsActiveAndModerationStatusAndTimeIsBefore(Integer id, Boolean isActive, ModerationStatus moderationStatus, LocalDateTime ldt);
+    @Query(nativeQuery = true, value = "SELECT * FROM posts p WHERE p.id = ? and p.time <= ? and ( is_active = ? or moderation_status = ?)")
+    PostEntity findByIdAndIsActiveORModerationStatusAndTimeIsBeforeNative(Integer id, LocalDateTime ldt, Boolean isActive, ModerationStatus moderationStatus);
 
     long count();
 
