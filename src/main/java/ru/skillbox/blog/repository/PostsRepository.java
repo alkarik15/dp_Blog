@@ -1,12 +1,12 @@
 package ru.skillbox.blog.repository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import ru.skillbox.blog.dto.projection.StatPostsShow;
 import ru.skillbox.blog.model.PostEntity;
 import ru.skillbox.blog.model.UserEntity;
 import ru.skillbox.blog.model.enums.ModerationStatus;
@@ -36,11 +36,11 @@ public interface PostsRepository extends JpaRepository<PostEntity, Integer> {
 
     @Query(nativeQuery = true, value = "SELECT COUNT(DISTINCT p.id) as postCount, SUM(p.view_count) as showCount, MIN(p.time) as firstPubl " +
         "FROM posts p WHERE p.user_id=?")
-    List<Object[]> statPostShowMy(Integer id);
+    StatPostsShow statPostShowMy(Integer id);
 
     @Query(nativeQuery = true, value = "SELECT COUNT(DISTINCT p.id) as postCount, SUM(p.view_count) as showCount, MIN(p.time) as firstPubl " +
         "FROM posts p")
-    List<Object[]> statPostShow();
+    StatPostsShow statPostShow();
 
     Integer countAllByIsActiveAndModerationStatus(Boolean isActive, ModerationStatus moderationStatus);
 

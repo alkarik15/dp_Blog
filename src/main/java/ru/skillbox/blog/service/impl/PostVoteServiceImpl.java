@@ -1,13 +1,15 @@
 package ru.skillbox.blog.service.impl;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.skillbox.blog.dto.StatsPostDto;
+import ru.skillbox.blog.dto.projection.PidSumsVotesComment;
+import ru.skillbox.blog.dto.projection.SumsVotes;
 import ru.skillbox.blog.model.PostEntity;
 import ru.skillbox.blog.model.PostVoteEntity;
 import ru.skillbox.blog.model.UserEntity;
@@ -34,26 +36,23 @@ public class PostVoteServiceImpl implements PostVoteService {
     private PostsRepository postsRepository;
 
     @Override
-    public Map<Integer, String> findStatistics(Integer userId) {
-        List<Object[]> statLDCs = (userId == null) ? postVotesRepository.statLDC() : postVotesRepository.statLDCMy(userId);
-        Map<Integer, String> mapLDC = new HashMap<>();
-        for (Object[] statLDC : statLDCs) {
-            String sss = String.join(":", Arrays.stream(statLDC).map(Object::toString).toArray(String[]::new));
-            mapLDC.put(Integer.parseInt(statLDC[0].toString()), sss);
+    public Map<Integer, StatsPostDto> findStatistics(Integer userId) {
+        List<PidSumsVotesComment> statLDCs = (userId == null) ? postVotesRepository.statLDC() : postVotesRepository.statLDCMy(userId);
+        Map<Integer, StatsPostDto> mapLDC = new HashMap<>();
+        for (PidSumsVotesComment statLDC : statLDCs) {
+            mapLDC.put(statLDC.getId(), new StatsPostDto(statLDC.getLikes(),statLDC.getDislikes(),statLDC.getCommentCount()));
         }
         return mapLDC;
     }
 
     @Override
-    public String findStatPost(Integer id) {
-        final List<Object[]> statPost = postVotesRepository.statPost(id);
-        String strStat = "";
-        for (Object[] stat : statPost) {
-            if (stat[0] != null) {
-                strStat = String.join(":", Arrays.stream(stat).map(Object::toString).toArray(String[]::new));
-            }
+    public StatsPostDto findStatPost(Integer id) {
+        final SumsVotes sumsVotes = postVotesRepository.statPost(id);
+        if(sumsVotes.getLikes()!=null) {
+            return new StatsPostDto(sumsVotes.getLikes(), sumsVotes.getDislikes());
+        }else{
+            return  new StatsPostDto(0, 0);
         }
-        return strStat;
     }
 
     @Override

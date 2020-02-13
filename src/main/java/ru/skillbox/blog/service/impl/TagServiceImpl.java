@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.skillbox.blog.dto.TagDto;
+import ru.skillbox.blog.dto.projection.TagType;
 import ru.skillbox.blog.model.TagEntity;
 import ru.skillbox.blog.repository.TagsRepository;
 import ru.skillbox.blog.service.TagService;
@@ -44,20 +45,21 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = true)
     public List<TagDto> GetAllTags(final String tagName) {
-        final List<Object[]> tags = tagsRepository.tagsCountInPost();
+        final List<TagType> tags = tagsRepository.tagsCountInPost();
         Boolean fistRow = true;
         Integer maxCount = 1;
         List<TagDto> tagsDto = new ArrayList<>();
-        for (Object[] tag : tags) {
+
+        for (TagType tag : tags) {
             if (fistRow) {
                 fistRow = false;
-                maxCount = Integer.parseInt(tag[2].toString());
+                maxCount = tag.getCount();
             }
-            Float normWeight = (float) Integer.parseInt(tag[2].toString()) / maxCount;
-            final String nameTag = tag[1].toString();
-            final Integer tagId = Integer.parseInt(tag[0].toString());
+            Float normWeight = (float) tag.getCount() / maxCount;
+            final String nameTag = tag.getName();
+            final Integer tagId = tag.getId();
             if (tagName.equals("")) {
                 tagsDto.add(new TagDto(tagId, nameTag, normWeight));
             } else {

@@ -24,9 +24,13 @@ import ru.skillbox.blog.dto.PostDto;
 import ru.skillbox.blog.dto.PostModeration;
 import ru.skillbox.blog.dto.PostsDto;
 import ru.skillbox.blog.dto.ResultsDto;
+import ru.skillbox.blog.dto.StatsPostDto;
 import ru.skillbox.blog.dto.UserDto;
 import ru.skillbox.blog.dto.enums.ParametrMode;
 import ru.skillbox.blog.dto.enums.ParametrStatus;
+import ru.skillbox.blog.dto.projection.StatPostsShow;
+import ru.skillbox.blog.dto.projection.SumsVotes;
+import ru.skillbox.blog.dto.projection.SumsVotesComment;
 import ru.skillbox.blog.exception.PostException;
 import ru.skillbox.blog.model.PostEntity;
 import ru.skillbox.blog.model.TagEntity;
@@ -164,12 +168,13 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Transactional(readOnly = false)
+//    @Transactional(readOnly = false)
     public void save(final PostEntity posts) {
         postsRepository.save(posts);
     }
 
     @Override
+    @Transactional(readOnly = false)
     public PostByIdDto getPostByIdModerationStatusActiveTime(
         final Integer id,
         final Boolean isActive,
@@ -180,16 +185,17 @@ public class PostServiceImpl implements PostService {
         if (postById == null) {
             throw new PostException("Post Id:" + id + " not found");
         }
+
+        postById.setViewCount(postById.getViewCount()+1);
+        save(postById);
+
         PostByIdDto postDto = modelMapper.map(postById, PostByIdDto.class);
 
-        String[] stats = postVoteService.findStatPost(id).split(":");
-        if (stats[0].length() > 0) {
-            postDto.setLikeCount(Integer.parseInt(stats[1]));
-            postDto.setDislikeCount(Integer.parseInt(stats[2]));
-        } else {
-            postDto.setLikeCount(0);
-            postDto.setDislikeCount(0);
-        }
+        StatsPostDto stats = postVoteService.findStatPost(id);
+
+        postDto.setLikeCount(stats.getLikes());
+        postDto.setDislikeCount(stats.getDislikes());
+
         List<CommentsDto> listCommentsDto = postCommentService.findByPostId(getPostById(id));
 
         postDto.setComments(listCommentsDto);
@@ -218,7 +224,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Transactional(readOnly = false)
+//    @Transactional(readOnly = false)
     public void createPostFromDto(
         final AddPostDto postDto,
         final ModerationStatus modStatus,
@@ -242,7 +248,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = false)
-    public PostsDto apiPost(OffsetLimitQueryDto param, ParametrMode mode, final Map<Integer, String> mapStatLDC) {
+    public PostsDto apiPost(OffsetLimitQueryDto param, ParametrMode mode, final Map<Integer, StatsPostDto> mapStatLDC) {
 
         final Integer count = countAll();
         final List<PostEntity> allPosts = findAllWithParam(param, mode, null);
@@ -253,7 +259,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = false)
-    public PostsDto apiPost(OffsetLimitQueryDto param, ParametrStatus status, final Map<Integer, String> mapStatLDC, Integer userId) {
+    public PostsDto apiPost(OffsetLimitQueryDto param, ParametrStatus status, final Map<Integer, StatsPostDto> mapStatLDC, Integer userId) {
 
         final Integer count = countAll();
 
@@ -265,7 +271,7 @@ public class PostServiceImpl implements PostService {
         return postsDto;
     }
 
-    private List<PostDto> getPostDtos(final Map<Integer, String> mapStatLDC, final List<PostEntity> allPosts) {
+    private List<PostDto> getPostDtos(final Map<Integer, StatsPostDto> mapStatLDC, final List<PostEntity> allPosts) {
         List<PostDto> postDtos = new ArrayList<>();
         for (PostEntity post : allPosts) {
             PostDto postDto = modelMapper.map(post, PostDto.class);
@@ -282,10 +288,10 @@ public class PostServiceImpl implements PostService {
 
             postDto.setUser(userDto);
             if (mapStatLDC.containsKey(postDto.getId())) {
-                final String[] splitLikes = mapStatLDC.get(postDto.getId()).split(":");
-                postDto.setLikeCount(Integer.parseInt(splitLikes[1]));
-                postDto.setDislikeCount(Integer.parseInt(splitLikes[2]));
-                postDto.setCommentCount(Integer.parseInt(splitLikes[3]));
+                final StatsPostDto statsPostDto = mapStatLDC.get(postDto.getId());
+                postDto.setLikeCount(statsPostDto.getLikes());
+                postDto.setDislikeCount(statsPostDto.getDislikes());
+                postDto.setCommentCount(statsPostDto.getCommentCount());
             } else {
                 postDto.setLikeCount(0);
                 postDto.setDislikeCount(0);
@@ -297,27 +303,27 @@ public class PostServiceImpl implements PostService {
     }
 
     public Map<String, String> statMy(Integer id) {
-        List<Object[]> statMy = postsRepository.statPostShowMy(id);
+        StatPostsShow statMy = postsRepository.statPostShowMy(id);
         return getStringMap(statMy, postVotesRepository.statLikeDislikeMy(id));
     }
 
     public Map<String, String> statAll() {
-        List<Object[]> statMy = postsRepository.statPostShow();
+        StatPostsShow statMy = postsRepository.statPostShow();
         return getStringMap(statMy, postVotesRepository.statLikeDislike());
     }
 
-    private Map<String, String> getStringMap(List<Object[]> statMy, final List<Object[]> objects) {
+    private Map<String, String> getStringMap(StatPostsShow statMy, final List<SumsVotes> sumsVotes) {
         HashMap<String, String> mapStatAll = new HashMap<>();
-        for (Object[] stat : statMy) {
-            mapStatAll.put("postsCount", stat[0].toString());
-            mapStatAll.put("viewsCount", stat[1].toString());
-            final String dateTime = stat[2].toString();
-            mapStatAll.put("firstPublication", dateTime.substring(0, dateTime.lastIndexOf(":")));
-        }
-        statMy = objects;
-        for (Object[] stat : statMy) {
-            mapStatAll.put("likesCount", stat[0].toString());
-            mapStatAll.put("dislikesCount", stat[1].toString());
+//        for (Object[] stat : statMy) {
+        mapStatAll.put("postsCount", statMy.getPostCount().toString());
+        mapStatAll.put("viewsCount", statMy.getShowCount().toString());
+//            final String dateTime = stat[2].toString();
+//            mapStatAll.put("firstPublication", dateTime.substring(0, dateTime.lastIndexOf(":")));
+        mapStatAll.put("firstPublication", statMy.getFirstPubl().toString());
+//        }
+        for (SumsVotes vote : sumsVotes) {
+            mapStatAll.put("likesCount", vote.getLikes().toString());
+            mapStatAll.put("dislikesCount", vote.getDislikes().toString());
         }
         return mapStatAll;
     }
@@ -395,11 +401,11 @@ public class PostServiceImpl implements PostService {
             postDto.setTime(dateTime.format(formatter));
 
             if (needStat) {
-                List<Object[]> statLD = postVotesRepository.statLikeDislikeCountCommentByPostId(post.getId());
-                for (Object[] stat : statLD) {
-                    postDto.setLikeCount(Integer.parseInt(stat[0].toString()));
-                    postDto.setDislikeCount(Integer.parseInt(stat[1].toString()));
-                    postDto.setCommentCount(Integer.parseInt(stat[2].toString()));
+                List<SumsVotesComment> statLD = postVotesRepository.statLikeDislikeCountCommentByPostId(post.getId());
+                for (SumsVotesComment stat : statLD) {
+                    postDto.setLikeCount(stat.getLikes());
+                    postDto.setDislikeCount(stat.getDislikes());
+                    postDto.setCommentCount(stat.getCommentCount());
                 }
             } else {
                 postDto.setViewCount(null);
@@ -414,6 +420,8 @@ public class PostServiceImpl implements PostService {
         return postsRepository.findById(id).orElse(null);
     }
 
+    @Override
+    @Transactional(readOnly = false)
     public ResultsDto createPost(HttpServletRequest request, AddPostDto addPost) {
         Map<String, String> errors = new HashMap<>();
         Integer userId = userService.getUserIdFromSession(request);

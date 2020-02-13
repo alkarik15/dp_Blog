@@ -91,14 +91,18 @@ public class UserServiceImpl implements UserService {
         return userDto;
     }
 
+    @Override
+    @Transactional(readOnly = false)
     public ResultsDto createUser(UserRegisterDto userRegister) {
         Map<String, String> errors;
+        //пока нет имени будет почта
+        userRegister.setName(userRegister.getEmail());
         errors = validateRegistration(userRegister);
 
         ResultsDto result = new ResultsDto();
         if (errors.size() == 0) {
             //пока нет имени будет почта
-            addUser(new UserEntity(LocalDateTime.now(), userRegister.getEmail(), userRegister.getEmail(), userRegister.getPassword()));
+            addUser(new UserEntity(LocalDateTime.now(), userRegister.getName(), userRegister.getEmail(), userRegister.getPassword()));
             result.setResult(true);
         } else {
             result.setResult(false);
