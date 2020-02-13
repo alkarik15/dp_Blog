@@ -22,6 +22,7 @@ import ru.skillbox.blog.dto.PostIdDto;
 import ru.skillbox.blog.dto.PostsDto;
 import ru.skillbox.blog.dto.ResultLikeDislikeDto;
 import ru.skillbox.blog.dto.ResultsDto;
+import ru.skillbox.blog.dto.StatsPostDto;
 import ru.skillbox.blog.dto.enums.ParametrMode;
 import ru.skillbox.blog.dto.enums.ParametrStatus;
 import ru.skillbox.blog.model.enums.ModerationStatus;
@@ -49,7 +50,7 @@ public class ApiPostController {
     @GetMapping()
     @ResponseBody
     public ResponseEntity<PostsDto> apiPost(OffsetLimitQueryDto param, @RequestParam(name = "mode") String mode) {
-        final Map<Integer, String> mapStatLDC = postVoteService.findStatistics(null);
+        final Map<Integer, StatsPostDto> mapStatLDC = postVoteService.findStatistics(null);
         ParametrMode incomeMode = ParametrMode.valueOf(mode.toUpperCase());
         PostsDto postsDto = postService.apiPost(param, incomeMode, mapStatLDC);
 
@@ -97,7 +98,7 @@ public class ApiPostController {
     public ResponseEntity<PostsDto> apiPostMy(HttpServletRequest request, OffsetLimitQueryDto param, @RequestParam("status") String status) {
         Integer userId = userService.getUserIdFromSession(request);
         System.out.println(userId);
-        final Map<Integer, String> mapStatLDC = postVoteService.findStatistics(userId);
+        final Map<Integer, StatsPostDto> mapStatLDC = postVoteService.findStatistics(userId);
         ParametrStatus incomeStatus = ParametrStatus.valueOf(status.toUpperCase());
         PostsDto postsDto = postService.apiPost(param, incomeStatus, mapStatLDC, userId);
         return new ResponseEntity<>(postsDto, HttpStatus.OK);

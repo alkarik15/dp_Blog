@@ -1,6 +1,7 @@
 package ru.skillbox.blog.service;
 
 import java.util.Map;
+import ru.skillbox.blog.dto.StatsPostDto;
 import ru.skillbox.blog.model.PostVoteEntity;
 
 /**
@@ -8,9 +9,9 @@ import ru.skillbox.blog.model.PostVoteEntity;
  * @link http://alkarik
  */
 public interface PostVoteService {
-    Map<Integer, String> findStatistics(Integer userId);
+    Map<Integer, StatsPostDto> findStatistics(Integer userId);
 
-    String findStatPost(Integer id);
+    StatsPostDto findStatPost(Integer id);
 
     Boolean setLikeByPostIdAndUserId(Integer postId, Integer userId);
 

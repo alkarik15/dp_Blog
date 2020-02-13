@@ -19,7 +19,7 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
-    @Column(nullable = false)
+
     private Boolean isModerator = false;
 
     @Column(nullable = false, columnDefinition = "DATETIME")

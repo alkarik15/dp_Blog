@@ -54,7 +54,6 @@ public class PostEntity {
     @Column(length = 65535, columnDefinition = "Text", nullable = false)
     private String text;
 
-    @Column(nullable = false)
     private int viewCount;
 
     @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
