@@ -13,4 +13,5 @@ import ru.skillbox.blog.model.PostEntity;
 @Repository
 public interface PostCommentsRepository extends CrudRepository<PostCommentEntity, Integer> {
     List<PostCommentEntity> findAllByPostId(PostEntity postId);
+    PostCommentEntity findAllById(Integer id);
 }
