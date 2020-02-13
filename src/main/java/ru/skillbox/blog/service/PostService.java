@@ -46,7 +46,8 @@ public interface PostService {
         final AddPostDto postDto,
         final ModerationStatus modStatus,
         final LocalDateTime ldt,
-        final Integer userId);
+        final Integer userId,
+        final Integer postId);
 
 
     Map<String, String> statMy(Integer id);
@@ -64,4 +65,6 @@ public interface PostService {
     PostEntity getPostById(Integer id);
 
     ResultsDto createPost(HttpServletRequest request, AddPostDto addPost);
+
+    ResultsDto updatePost(Integer id, AddPostDto postDto, HttpServletRequest request);
 }

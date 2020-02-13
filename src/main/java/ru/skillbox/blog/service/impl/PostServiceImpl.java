@@ -181,12 +181,12 @@ public class PostServiceImpl implements PostService {
         final ModerationStatus moderationStatus,
         final LocalDateTime ldt) {
 
-        final PostEntity postById = postsRepository.findByIdAndIsActiveAndModerationStatusAndTimeIsBefore(id, isActive, moderationStatus, ldt);
+        final PostEntity postById = postsRepository.findByIdAndIsActiveORModerationStatusAndTimeIsBeforeNative(id, ldt, isActive, moderationStatus);
         if (postById == null) {
             throw new PostException("Post Id:" + id + " not found");
         }
 
-        postById.setViewCount(postById.getViewCount()+1);
+        postById.setViewCount(postById.getViewCount() + 1);
         save(postById);
 
         PostByIdDto postDto = modelMapper.map(postById, PostByIdDto.class);
@@ -229,9 +229,13 @@ public class PostServiceImpl implements PostService {
         final AddPostDto postDto,
         final ModerationStatus modStatus,
         final LocalDateTime ldt,
-        final Integer userId) {
+        final Integer userId,
+        final Integer postId) {
 
         PostEntity post = modelMapper.map(postDto, PostEntity.class);
+        if (postId != null) {
+            post.setId(postId);
+        }
         post.setIsActive(postDto.getActive());
         post.setModerationStatus(modStatus);
         post.setTime(postDto.getLdt());
@@ -314,13 +318,9 @@ public class PostServiceImpl implements PostService {
 
     private Map<String, String> getStringMap(StatPostsShow statMy, final List<SumsVotes> sumsVotes) {
         HashMap<String, String> mapStatAll = new HashMap<>();
-//        for (Object[] stat : statMy) {
         mapStatAll.put("postsCount", statMy.getPostCount().toString());
         mapStatAll.put("viewsCount", statMy.getShowCount().toString());
-//            final String dateTime = stat[2].toString();
-//            mapStatAll.put("firstPublication", dateTime.substring(0, dateTime.lastIndexOf(":")));
         mapStatAll.put("firstPublication", statMy.getFirstPubl().toString());
-//        }
         for (SumsVotes vote : sumsVotes) {
             mapStatAll.put("likesCount", vote.getLikes().toString());
             mapStatAll.put("dislikesCount", vote.getDislikes().toString());
@@ -423,9 +423,23 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = false)
     public ResultsDto createPost(HttpServletRequest request, AddPostDto addPost) {
-        Map<String, String> errors = new HashMap<>();
         Integer userId = userService.getUserIdFromSession(request);
 
+        Map<String, String> errors = verifyPost(addPost);
+
+        ResultsDto result = new ResultsDto();
+        if (errors.size() == 0) {
+            result.setResult(true);
+            createPostFromDto(addPost, ModerationStatus.NEW, LocalDateTime.now(), userId, null);
+        } else {
+            result.setResult(false);
+            result.setErrors(errors);
+        }
+        return result;
+    }
+
+    public Map<String, String> verifyPost(final AddPostDto addPost) {
+        Map<String, String> errors = new HashMap<>();
         addPost.setLdt(LocalDateTime.parse(addPost.getTime()));
         if (addPost.getTitle() == null || addPost.getTitle().length() == 0) {
             errors.put("title", "Заголовок не установлен");
@@ -437,11 +451,20 @@ public class PostServiceImpl implements PostService {
         } else if (addPost.getText().length() <= 500) {
             errors.put("text", "Текст публикации слишком короткий");
         }
+        return errors;
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public ResultsDto updatePost(final Integer id, final AddPostDto postDto, HttpServletRequest request) {
+        Integer userId = userService.getUserIdFromSession(request);
+
+        Map<String, String> errors = verifyPost(postDto);
 
         ResultsDto result = new ResultsDto();
         if (errors.size() == 0) {
             result.setResult(true);
-            createPostFromDto(addPost, ModerationStatus.NEW, LocalDateTime.now(), userId);
+            createPostFromDto(postDto, ModerationStatus.NEW, LocalDateTime.now(), userId, id);
         } else {
             result.setResult(false);
             result.setErrors(errors);

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -74,6 +75,11 @@ public class ApiPostController {
     public ResponseEntity<PostByIdDto> apiPostById(@PathVariable("id") Integer id) {
         PostByIdDto postByDto = postService.getPostByIdModerationStatusActiveTime(id, true, ModerationStatus.ACCEPTED, LocalDateTime.now());
         return new ResponseEntity<>(postByDto, HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}")
+    public ResultsDto apiPostById(@PathVariable("id") Integer id, HttpServletRequest request, @RequestBody AddPostDto postDto) {
+        return postService.updatePost(id, postDto, request);
     }
 
     @GetMapping("/byDate")

@@ -19,18 +19,20 @@ import ru.skillbox.blog.model.UserEntity;
 public interface PostVotesRepository extends CrudRepository<PostVoteEntity, Integer> {
     //
     @Query(nativeQuery = true, value = "SELECT " +
-        "p.post_id AS pid, SUM(IF(p.value=1,1,0)) AS likes, SUM(IF(p.value=-1,1,0)) AS dislikes, " +
+        "p.id AS pid, SUM(IF(pv.value=1,1,0)) AS likes, SUM(IF(pv.value=-1,1,0)) AS dislikes, " +
         "COUNT(DISTINCT pc.id) as commentCount " +
-        "FROM post_votes p " +
-        "  LEFT JOIN post_comments AS pc ON pc.post_id=p.post_id " +
-        "GROUP BY p.post_id")
+        "FROM posts p " +
+        "LEFT JOIN post_votes pv ON p.id = pv.post_id " +
+        "LEFT JOIN post_comments AS pc ON pc.post_id=p.id " +
+        "GROUP BY p.id")
     List<PidSumsVotesComment> statLDC();
 
     @Query(nativeQuery = true, value = "SELECT " +
-        "p.post_id AS pid, SUM(IF(p.value=1,1,0)) AS likes, SUM(IF(p.value=-1,1,0)) AS dislikes, " +
+        "p.id AS pid, SUM(IF(pv.value=1,1,0)) AS likes, SUM(IF(pv.value=-1,1,0)) AS dislikes, " +
         "COUNT(DISTINCT pc.id) as commentCount " +
-        "FROM post_votes p " +
-        "  LEFT JOIN post_comments AS pc ON pc.post_id=p.post_id " +
+        "FROM posts p " +
+        "LEFT JOIN post_votes pv ON p.id = pv.post_id " +
+        "LEFT JOIN post_comments AS pc ON pc.post_id=p.id " +
         "WHERE p.user_id = ? " +
         "GROUP BY p.post_id")
     List<PidSumsVotesComment> statLDCMy(Integer userId);

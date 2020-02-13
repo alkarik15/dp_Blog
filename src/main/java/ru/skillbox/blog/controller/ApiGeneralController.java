@@ -18,11 +18,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skillbox.blog.component.HeaderProperties;
+import ru.skillbox.blog.dto.CommentsParamDto;
 import ru.skillbox.blog.dto.PostModeration;
 import ru.skillbox.blog.dto.TagsDto;
 import ru.skillbox.blog.model.GlobalSettingEntity;
 import ru.skillbox.blog.service.FileService;
 import ru.skillbox.blog.service.GlobalSettingService;
+import ru.skillbox.blog.service.PostCommentService;
 import ru.skillbox.blog.service.PostService;
 import ru.skillbox.blog.service.TagService;
 import ru.skillbox.blog.service.UserService;
@@ -42,6 +44,9 @@ public class ApiGeneralController {
 
     @Autowired
     private PostService postService;
+
+    @Autowired
+    private PostCommentService postCommentService;
 
     @Autowired
     private UserService userService;
@@ -127,5 +132,11 @@ public class ApiGeneralController {
         TagsDto tagsDto = new TagsDto(tagService.GetAllTags(query));
         Gson gson = new Gson();
         return new ResponseEntity(gson.toJson(tagsDto), HttpStatus.OK);
+    }
+    @PostMapping("/comment")
+    public ResponseEntity apiPostComment(HttpServletRequest request, @RequestBody CommentsParamDto commentsParamDto) {
+        Integer userId = userService.getUserIdFromSession(request);
+        Object result = postCommentService.saveComment(commentsParamDto, userId);
+        return new ResponseEntity<>(result,HttpStatus.OK);
     }
 }
