@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -33,6 +34,7 @@ import ru.skillbox.blog.service.UserService;
  * @author alkarik
  * @link http://alkarik
  */
+@CrossOrigin
 @RestController
 @RequestMapping("/api")
 public class ApiGeneralController {
@@ -57,6 +59,9 @@ public class ApiGeneralController {
     @Autowired
     private FileService fileService;
 
+    @Autowired
+    ApiAuthController apiAuthController;
+
     @GetMapping("/init")
     public ResponseEntity<Map<String, String>> initHeader() {
         return new ResponseEntity(headerProperties.getHeader(), HttpStatus.OK);
@@ -64,7 +69,7 @@ public class ApiGeneralController {
 
     @GetMapping("/settings")
     public ResponseEntity<Map<String, Boolean>> apiGetSettings(HttpServletRequest request) {
-        Integer userId = userService.getUserIdFromSession(request);
+        Integer userId = apiAuthController.getUserIdFromSession(request);
         if (userService.isModerator(userId)) {
             return new ResponseEntity(getSettings(), HttpStatus.OK);
         }
@@ -73,7 +78,7 @@ public class ApiGeneralController {
 
     @PutMapping(value = "/settings")
     public ResponseEntity<Map<String, Boolean>> apiPutSettings(HttpServletRequest request, @RequestBody Map<String, Boolean> globalSettings) throws HttpMessageNotReadableException {
-        Integer userId = userService.getUserIdFromSession(request);
+        Integer userId = apiAuthController.getUserIdFromSession(request);
         if (userService.isModerator(userId)) {
             //TODO Валидация входных данных ?
             for (Map.Entry<String, Boolean> entry : globalSettings.entrySet()) {
@@ -97,7 +102,7 @@ public class ApiGeneralController {
 
     @GetMapping("/statistics/my")
     public ResponseEntity<Map<String, String>> apiGetStatMy(HttpServletRequest request) {
-        Integer userId = userService.getUserIdFromSession(request);
+        Integer userId = apiAuthController.getUserIdFromSession(request);
         Map<String, String> mapStatMy = postService.statMy(userId);
         return new ResponseEntity(mapStatMy, HttpStatus.OK);
     }
@@ -106,7 +111,7 @@ public class ApiGeneralController {
     public ResponseEntity apiGetStatAll(HttpServletRequest request) {
         Map<String, Boolean> sett = getSettings();
         Boolean isPublic = sett.get("STATISTICS_IS_PUBLIC");
-        Integer userId = userService.getUserIdFromSession(request);
+        Integer userId =apiAuthController.getUserIdFromSession(request);
         if (isPublic) {
             Map<String, String> mapStatMy = postService.statAll();
             Gson gson = new Gson();
@@ -122,20 +127,20 @@ public class ApiGeneralController {
 
     @PostMapping("/moderation")
     public ResponseEntity apiPostImage(HttpServletRequest request, @RequestBody PostModeration postModeration) {
-        Integer moderatorId = userService.getUserIdFromSession(request);
+        Integer moderatorId = apiAuthController.getUserIdFromSession(request);
         postService.setModeration(postModeration, moderatorId);
         return new ResponseEntity(HttpStatus.OK);
     }
 
     @GetMapping("/tag")
     public ResponseEntity apiGetTag(@RequestParam(value = "query", defaultValue = "") String query) {
-        TagsDto tagsDto = new TagsDto(tagService.GetAllTags(query));
+        TagsDto tagsDto = new TagsDto(tagService.getAllTags(query));
         Gson gson = new Gson();
         return new ResponseEntity(gson.toJson(tagsDto), HttpStatus.OK);
     }
     @PostMapping("/comment")
     public ResponseEntity apiPostComment(HttpServletRequest request, @RequestBody CommentsParamDto commentsParamDto) {
-        Integer userId = userService.getUserIdFromSession(request);
+        Integer userId = apiAuthController.getUserIdFromSession(request);
         Object result = postCommentService.saveComment(commentsParamDto, userId);
         return new ResponseEntity<>(result,HttpStatus.OK);
     }

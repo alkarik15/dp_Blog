@@ -1,6 +1,5 @@
 package ru.skillbox.blog.service;
 
-import javax.servlet.http.HttpServletRequest;
 import ru.skillbox.blog.dto.LoginDto;
 import ru.skillbox.blog.dto.ResultLoginDto;
 import ru.skillbox.blog.dto.ResultsDto;
@@ -29,5 +28,5 @@ public interface UserService {
 
     ResultsDto createUser(UserRegisterDto userRegister);
 
-    Integer getUserIdFromSession(HttpServletRequest request);
+//    Integer getUserIdFromSession(HttpServletRequest request);
 }
