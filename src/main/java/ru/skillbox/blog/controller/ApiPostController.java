@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +36,7 @@ import ru.skillbox.blog.service.UserService;
  * @author alkarik
  * @link http://alkarik
  */
+@CrossOrigin
 @RestController
 @RequestMapping("/api/post")
 public class ApiPostController {
@@ -47,6 +49,9 @@ public class ApiPostController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    ApiAuthController apiAuthController;
 
     @GetMapping()
     @ResponseBody
@@ -94,7 +99,7 @@ public class ApiPostController {
 
     @GetMapping("/moderation")
     public ResponseEntity<PostsDto> apiPostModeration(HttpServletRequest request, OffsetLimitQueryDto param, @RequestParam(name = "status") String status) {
-        Integer userId = userService.getUserIdFromSession(request);
+        Integer userId = apiAuthController.getUserIdFromSession(request);
         ModerationStatus moderationStatus = ModerationStatus.valueOf(status.toUpperCase());
         PostsDto postsDto = postService.apiPostModeration(param, moderationStatus);
         return new ResponseEntity<>(postsDto, HttpStatus.OK);
@@ -102,7 +107,7 @@ public class ApiPostController {
 
     @GetMapping("/my")
     public ResponseEntity<PostsDto> apiPostMy(HttpServletRequest request, OffsetLimitQueryDto param, @RequestParam("status") String status) {
-        Integer userId = userService.getUserIdFromSession(request);
+        Integer userId = apiAuthController.getUserIdFromSession(request);
         System.out.println(userId);
         final Map<Integer, StatsPostDto> mapStatLDC = postVoteService.findStatistics(userId);
         ParametrStatus incomeStatus = ParametrStatus.valueOf(status.toUpperCase());
@@ -119,7 +124,7 @@ public class ApiPostController {
 
     @PostMapping("/like")
     public ResponseEntity apiPostLike(HttpServletRequest request, @RequestBody PostIdDto postIdDto) {
-        Integer userId = userService.getUserIdFromSession(request);
+        Integer userId = apiAuthController.getUserIdFromSession(request);
         Integer postId = postIdDto.getPost_id();
         if (postId != null && postId > 0) {
             Boolean postLike = postVoteService.setLikeByPostIdAndUserId(postId, userId);
@@ -132,7 +137,7 @@ public class ApiPostController {
 
     @PostMapping("/dislike")
     public ResponseEntity apiPostDislike(HttpServletRequest request, @RequestBody PostIdDto postIdDto) {
-        Integer userId = userService.getUserIdFromSession(request);
+        Integer userId = apiAuthController.getUserIdFromSession(request);
         Integer postId = postIdDto.getPost_id();
         Boolean postDisLike = postVoteService.findDislikeByPostIdAndUserId(postId, userId);
         ResultLikeDislikeDto resultLikeDislikeDto = new ResultLikeDislikeDto(postDisLike);

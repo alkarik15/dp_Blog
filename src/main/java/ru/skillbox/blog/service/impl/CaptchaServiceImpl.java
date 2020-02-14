@@ -67,10 +67,10 @@ public class CaptchaServiceImpl implements CaptchaService {
             final int round = (int) Math.round(Math.random() * numChars);
             strSecret += chars.charAt(round);
         }
-        String encoded = "";
+        String encoded = "data:image/png;base64,";
         try {
             final byte[] captchaPng = Captcha.getCaptcha(strCode, "png");
-            encoded = Base64.getEncoder().encodeToString(captchaPng);
+            encoded += Base64.getEncoder().encodeToString(captchaPng);
             CaptchaCodeEntity captcha = new CaptchaCodeEntity(LocalDateTime.now(), strCode, strSecret);
             saveCaptcha(captcha);
         } catch (IOException e) {

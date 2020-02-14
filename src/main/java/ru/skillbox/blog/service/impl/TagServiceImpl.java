@@ -45,8 +45,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<TagDto> GetAllTags(final String tagName) {
+    public List<TagDto> getAllTags(final String tagName) {
         final List<TagType> tags = tagsRepository.tagsCountInPost();
         Boolean fistRow = true;
         Integer maxCount = 1;

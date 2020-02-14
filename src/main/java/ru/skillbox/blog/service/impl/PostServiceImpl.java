@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.skillbox.blog.controller.ApiAuthController;
 import ru.skillbox.blog.dto.AddPostDto;
 import ru.skillbox.blog.dto.CommentsDto;
 import ru.skillbox.blog.dto.OffsetLimitQueryDto;
@@ -67,6 +68,9 @@ public class PostServiceImpl implements PostService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ApiAuthController apiAuthController;
 
     @Autowired
     private UsersRepository usersRepository;
@@ -423,7 +427,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = false)
     public ResultsDto createPost(HttpServletRequest request, AddPostDto addPost) {
-        Integer userId = userService.getUserIdFromSession(request);
+        Integer userId = apiAuthController.getUserIdFromSession(request);
 
         Map<String, String> errors = verifyPost(addPost);
 
@@ -440,7 +444,12 @@ public class PostServiceImpl implements PostService {
 
     public Map<String, String> verifyPost(final AddPostDto addPost) {
         Map<String, String> errors = new HashMap<>();
-        addPost.setLdt(LocalDateTime.parse(addPost.getTime()));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime dateTime = LocalDateTime.parse(addPost.getTime(), formatter);
+
+        addPost.setLdt(dateTime);
+
         if (addPost.getTitle() == null || addPost.getTitle().length() == 0) {
             errors.put("title", "Заголовок не установлен");
         } else if (addPost.getTitle().length() <= 10) {
@@ -457,7 +466,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = false)
     public ResultsDto updatePost(final Integer id, final AddPostDto postDto, HttpServletRequest request) {
-        Integer userId = userService.getUserIdFromSession(request);
+        Integer userId = apiAuthController.getUserIdFromSession(request);
 
         Map<String, String> errors = verifyPost(postDto);
 

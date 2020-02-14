@@ -14,5 +14,5 @@ public interface TagService {
 
     Set<TagEntity> collectTags(String[] tags);
 
-    List<TagDto> GetAllTags(String tagName);
+    List<TagDto> getAllTags(String tagName);
 }
